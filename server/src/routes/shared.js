@@ -13,7 +13,7 @@ import { decryptJson } from '../lib/crypto.js';
 import { optionalText } from '../lib/validation.js';
 import { requireAuth } from '../middleware/auth.js';
 import { revealLimiter } from '../middleware/security.js';
-import { DAY_MS, enterGrace } from '../services/legacy.js';
+import { enterGrace, evaluateUser, graceMs, isLiveDemo } from '../services/legacy.js';
 import { assetDto } from './assets.js';
 import { WITHOUT_DATA, documentDto, sendDocument } from './documents.js';
 import { letterDto } from './letters.js';
@@ -30,6 +30,7 @@ async function loadMembership(req) {
     include: { owner: true },
   });
   if (!nominee) throw notFound();
+  nominee.owner = await evaluateUser(nominee.owner);
   return nominee;
 }
 
@@ -45,13 +46,16 @@ router.get('/', async (req, res) => {
     include: { owner: true, _count: { select: { assetShares: true, documentShares: true, letters: true } } },
     orderBy: { acceptedAt: 'asc' },
   });
+  for (const m of memberships) m.owner = await evaluateUser(m.owner);
   res.json({
+    serverNow: new Date(),
     vaults: memberships.map((m) => ({
       id: m.id,
       ownerName: m.owner.name,
       relationship: m.relationship,
       ownerStatus: visibleStatus(m.owner.legacyStatus),
       graceEndsAt: m.owner.legacyStatus === 'GRACE' ? m.owner.graceEndsAt : null,
+      liveDemo: isLiveDemo(m.owner),
       counts: { assets: m._count.assetShares, documents: m._count.documentShares, letters: m._count.letters },
     })),
   });
@@ -109,7 +113,7 @@ router.post('/:nomineeId/report', async (req, res) => {
   const { note } = z.object({ note: optionalText(500, 'Note') }).parse(req.body ?? {});
   const owner = nominee.owner;
   if (owner.legacyStatus === 'ACTIVE' || owner.legacyStatus === 'REMINDED') {
-    const graceEndsAt = new Date(Date.now() + owner.gracePeriodDays * DAY_MS);
+    const graceEndsAt = new Date(Date.now() + graceMs(owner));
     await enterGrace(owner, {
       graceEndsAt,
       reason: `${nominee.name} (${nominee.relationship}) told us they believe you may have passed away or are unwell.${note ? ` Their note: "${note}"` : ''}`,
@@ -123,7 +127,7 @@ router.post('/:nomineeId/report', async (req, res) => {
     });
   }
   const fresh = await prisma.user.findUnique({ where: { id: owner.id } });
-  res.json({ ownerStatus: visibleStatus(fresh.legacyStatus), graceEndsAt: fresh.graceEndsAt });
+  res.json({ ownerStatus: visibleStatus(fresh.legacyStatus), graceEndsAt: fresh.graceEndsAt, serverNow: new Date() });
 });
 
 export default router;

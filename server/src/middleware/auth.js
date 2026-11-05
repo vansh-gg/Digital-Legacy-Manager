@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { unauthorized } from '../lib/http.js';
+import { evaluateUser } from '../services/legacy.js';
 
 const COOKIE = 'dlm_session';
 
@@ -40,6 +41,7 @@ export async function requireAuth(req, res, next) {
     clearSession(res);
     throw unauthorized('Your session has ended. Please log in again.');
   }
-  req.user = user;
+  // Apply any check-in step that has become due (keeps live demos and daily-cron hosting exact).
+  req.user = await evaluateUser(user);
   next();
 }

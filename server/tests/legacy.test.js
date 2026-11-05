@@ -122,3 +122,46 @@ describe('Check-in & release (dead man\'s switch)', () => {
     assert.equal(res.body.steps.find((s) => s.key === 'assigned').done, false, 'one asset is unassigned');
   });
 });
+
+describe('Live demo mode (seconds)', () => {
+  test('TC-LIVE-01 owner misses a seconds-based check-in and is released on the next request', async () => {
+    const { owner, nominee, nomineeId, nomineeEmail } = await familySetup();
+    const start = await owner.c.post('/api/dev/live-demo').send({ intervalSeconds: 10, graceSeconds: 10 });
+    assert.equal(start.status, 200);
+    assert.equal(start.body.user.liveDemo, true);
+
+    // 11 seconds "pass": the next request applies the missed check-in immediately (no cron needed).
+    await prisma.user.update({ where: { id: owner.user.id }, data: { lastCheckInAt: new Date(Date.now() - 11_000) } });
+    const me = await owner.c.get('/api/auth/me');
+    assert.equal(me.body.user.legacyStatus, 'GRACE');
+    assert.ok(new Date(me.body.user.graceEndsAt) - Date.now() <= 10_000, 'waiting period is in seconds');
+
+    // The waiting period ends: the nominee's own request releases the vault.
+    await prisma.user.update({ where: { id: owner.user.id }, data: { graceEndsAt: new Date(Date.now() - 1000) } });
+    const list = await nominee.c.get('/api/shared');
+    assert.equal(list.body.vaults[0].ownerStatus, 'RELEASED');
+    assert.equal(list.body.vaults[0].liveDemo, true);
+    assert.equal((await nominee.c.get(`/api/shared/${nomineeId}`)).status, 200);
+    assert.match((await lastEmailTo(nomineeEmail)).subject, /left items for you/);
+  });
+
+  test('TC-LIVE-02 two simultaneous checks never send duplicate emails', async () => {
+    const { owner, nomineeEmail } = await familySetup();
+    await setLastCheckIn(owner.user.id, 31);
+    const user = await prisma.user.findUnique({ where: { id: owner.user.id } });
+    const { evaluateUser } = await import('../src/services/legacy.js');
+    await Promise.all([evaluateUser(user), evaluateUser(user), evaluateUser(user)]);
+    const heads = await prisma.emailLog.count({ where: { to: nomineeEmail, subject: { contains: 'trying to reach' } } });
+    assert.equal(heads, 1);
+  });
+
+  test('TC-LIVE-03 stopping live demo returns to the normal schedule and checks in', async () => {
+    const { owner } = await familySetup();
+    await owner.c.post('/api/dev/live-demo').send({ intervalSeconds: 30, graceSeconds: 30 });
+    const stop = await owner.c.delete('/api/dev/live-demo');
+    assert.equal(stop.body.user.liveDemo, false);
+    assert.equal(stop.body.user.legacyStatus, 'ACTIVE');
+    const bad = await owner.c.post('/api/dev/live-demo').send({ intervalSeconds: 2, graceSeconds: 30 });
+    assert.equal(bad.status, 400);
+  });
+});

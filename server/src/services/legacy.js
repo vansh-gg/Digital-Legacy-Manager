@@ -6,7 +6,13 @@ import { sendMail, appLink } from '../lib/mailer.js';
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
-export const checkInDueAt = (user) => new Date(user.lastCheckInAt.getTime() + user.checkInIntervalDays * DAY_MS);
+/** Live demo mode counts in seconds; normal mode counts in days. */
+export const isLiveDemo = (user) => Boolean(user.demoIntervalSeconds);
+export const intervalMs = (user) => (isLiveDemo(user) ? user.demoIntervalSeconds * 1000 : user.checkInIntervalDays * DAY_MS);
+export const graceMs = (user) =>
+  isLiveDemo(user) && user.demoGraceSeconds ? user.demoGraceSeconds * 1000 : user.gracePeriodDays * DAY_MS;
+
+export const checkInDueAt = (user) => new Date(user.lastCheckInAt.getTime() + intervalMs(user));
 
 /** Safe view of a user for the browser. */
 export function publicUser(user) {
@@ -22,6 +28,10 @@ export function publicUser(user) {
     legacyStatus: user.legacyStatus,
     graceEndsAt: user.graceEndsAt,
     statusReason: user.statusReason,
+    liveDemo: isLiveDemo(user),
+    demoIntervalSeconds: user.demoIntervalSeconds,
+    demoGraceSeconds: user.demoGraceSeconds,
+    serverNow: new Date(),
     createdAt: user.createdAt,
   };
 }
@@ -46,7 +56,7 @@ export async function recordCheckIn(user, via, req = null) {
   await audit(user.id, 'CHECK_IN', `You confirmed you are well (${via}).`, req);
 
   if (previous === 'GRACE' || previous === 'RELEASED') {
-    const nominees = await prisma.nominee.findMany({ where: { ownerId: user.id, status: 'ACCEPTED' } });
+    const nominees = await acceptedNominees(user.id);
     for (const n of nominees) {
       await sendMail({
         to: n.email,
@@ -70,35 +80,51 @@ export { appLink };
 // ---------------------------------------------------------------------------
 // Inactivity engine ("dead man's switch")
 //
-//   ACTIVE ──(3 days before due)──▶ REMINDED ──(due date passes)──▶ GRACE
-//      ▲                                                          │
-//      └──────────── owner checks in at any point ◀───────────────┤
-//                                                                 ▼
-//                                          (grace period ends)  RELEASED
+//   ACTIVE ──(shortly before due)──▶ REMINDED ──(due date passes)──▶ GRACE
+//      ▲                                                            │
+//      └───────────── owner checks in at any point ◀────────────────┤
+//                                                                   ▼
+//                                            (waiting period ends)  RELEASED
+//
+// Every transition is a conditional update ("only if still in state X"), so
+// running the engine twice at the same moment never sends duplicate emails.
 // ---------------------------------------------------------------------------
+
+const acceptedNominees = (ownerId) => prisma.nominee.findMany({ where: { ownerId, status: 'ACCEPTED' } });
+
+/** Atomically move a user from one of `from` states. Returns true if this call made the change. */
+async function transition(userId, from, data) {
+  const { count } = await prisma.user.updateMany({
+    where: { id: userId, legacyStatus: { in: from } },
+    data: { ...data, statusChangedAt: new Date() },
+  });
+  return count === 1;
+}
+
+const describeWhen = (user, date) =>
+  isLiveDemo(user)
+    ? `in about ${Math.max(1, Math.round((date - Date.now()) / 1000))} seconds`
+    : `on ${date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 
 async function sendCheckInEmail(user, { subject, heading, text }) {
   const token = await createToken({
     type: 'CHECK_IN',
     userId: user.id,
-    ttlMinutes: (user.checkInIntervalDays + user.gracePeriodDays + 7) * 24 * 60,
+    ttlMinutes: Math.max(60, Math.ceil((intervalMs(user) + graceMs(user)) / 60000) + 7 * 24 * 60),
   });
   await sendMail({ to: user.email, subject, heading, text, link: appLink(`/check-in/${token}`), linkLabel: 'Yes, I am well' });
 }
 
-const acceptedNominees = (ownerId) => prisma.nominee.findMany({ where: { ownerId, status: 'ACCEPTED' } });
-
 export async function enterGrace(user, { graceEndsAt, reason }) {
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: { legacyStatus: 'GRACE', statusChangedAt: new Date(), graceEndsAt, statusReason: reason },
-  });
-  const until = graceEndsAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-  await sendCheckInEmail(updated, {
+  const changed = await transition(user.id, ['ACTIVE', 'REMINDED'], { legacyStatus: 'GRACE', graceEndsAt, statusReason: reason });
+  if (!changed) return prisma.user.findUnique({ where: { id: user.id } });
+
+  const when = describeWhen(user, graceEndsAt);
+  await sendCheckInEmail(user, {
     subject: 'Urgent: please confirm you are well',
     heading: 'Please let us know you are well',
     text:
-      `Dear ${user.name},\n\n${reason}\n\nIf we do not hear from you by ${until}, the items you chose will be shared with your nominees.\n\n` +
+      `Dear ${user.name},\n\n${reason}\n\nIf we do not hear from you ${when}, the items you chose will be shared with your nominees.\n\n` +
       'Please press the button below, or simply log in. It takes one click.',
   });
   for (const n of await acceptedNominees(user.id)) {
@@ -110,15 +136,14 @@ export async function enterGrace(user, { graceEndsAt, reason }) {
         `and remind them to log in to Digital Legacy Manager.\n\nNothing else is needed from you right now.`,
     });
   }
-  await audit(user.id, 'GRACE_STARTED', `${reason} Release scheduled for ${until} unless you check in.`);
-  return updated;
+  await audit(user.id, 'GRACE_STARTED', `${reason} Release scheduled ${when} unless you check in.`);
+  return prisma.user.findUnique({ where: { id: user.id } });
 }
 
 export async function releaseVault(user) {
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: { legacyStatus: 'RELEASED', statusChangedAt: new Date(), graceEndsAt: null },
-  });
+  const changed = await transition(user.id, ['GRACE'], { legacyStatus: 'RELEASED', graceEndsAt: null });
+  if (!changed) return prisma.user.findUnique({ where: { id: user.id } });
+
   for (const n of await acceptedNominees(user.id)) {
     await sendMail({
       to: n.email,
@@ -139,41 +164,69 @@ export async function releaseVault(user) {
     linkLabel: 'Log in',
   });
   await audit(user.id, 'VAULT_RELEASED', 'Your vault was released to your accepted nominees.');
-  return updated;
+  return prisma.user.findUnique({ where: { id: user.id } });
 }
 
-/** Hourly job. Safe to run many times: each step happens only once. */
-export async function runInactivitySweep(now = new Date()) {
-  const summary = { reminded: 0, grace: 0, released: 0 };
-  const users = await prisma.user.findMany({ where: { legacyStatus: { in: ['ACTIVE', 'REMINDED', 'GRACE'] } } });
+/**
+ * Apply whichever step is due for one owner, right now. Used by the scheduled
+ * sweep and on demand whenever an owner's status is read, so live demos and
+ * serverless hosting (cron once a day) still release exactly on time.
+ */
+export async function evaluateUser(user, now = new Date()) {
+  if (!user || user.legacyStatus === 'RELEASED') return user;
 
-  for (const user of users) {
-    if (user.legacyStatus === 'GRACE') {
-      if (user.graceEndsAt && now >= user.graceEndsAt) {
-        await releaseVault(user);
-        summary.released++;
-      }
-      continue;
-    }
-    const due = checkInDueAt(user);
-    const reminderDays = Math.min(config.reminderDaysBefore, Math.floor(user.checkInIntervalDays / 2));
-    const remindAt = new Date(due.getTime() - reminderDays * DAY_MS);
+  if (user.legacyStatus === 'GRACE') {
+    return user.graceEndsAt && now >= user.graceEndsAt ? releaseVault(user) : user;
+  }
 
-    if (now >= due) {
-      // Always give at least one full day of warning, even if the server was offline for a while.
-      const graceEndsAt = new Date(Math.max(due.getTime() + user.gracePeriodDays * DAY_MS, now.getTime() + DAY_MS));
-      await enterGrace(user, { graceEndsAt, reason: `You have not checked in since ${user.lastCheckInAt.toDateString()}.` });
-      summary.grace++;
-    } else if (now >= remindAt && user.legacyStatus === 'ACTIVE') {
-      await prisma.user.update({ where: { id: user.id }, data: { legacyStatus: 'REMINDED', statusChangedAt: now } });
+  const due = checkInDueAt(user);
+  const remindAt = isLiveDemo(user)
+    ? new Date(due.getTime() - intervalMs(user) / 2)
+    : new Date(due.getTime() - Math.min(config.reminderDaysBefore, Math.floor(user.checkInIntervalDays / 2)) * DAY_MS);
+
+  if (now >= due) {
+    // Always leave at least one full warning period, even if the server was offline for a while.
+    const minWarning = isLiveDemo(user) ? graceMs(user) : DAY_MS;
+    const graceEndsAt = new Date(Math.max(due.getTime() + graceMs(user), now.getTime() + Math.min(minWarning, graceMs(user))));
+    const reason = isLiveDemo(user)
+      ? 'You missed your check-in (live demo).'
+      : `You have not checked in since ${user.lastCheckInAt.toDateString()}.`;
+    const updated = await enterGrace(user, { graceEndsAt, reason });
+    // A long outage may mean the waiting period has already ended too.
+    return updated?.legacyStatus === 'GRACE' && updated.graceEndsAt && now >= updated.graceEndsAt ? releaseVault(updated) : updated;
+  }
+
+  if (now >= remindAt && user.legacyStatus === 'ACTIVE') {
+    if (await transition(user.id, ['ACTIVE'], { legacyStatus: 'REMINDED' })) {
       await sendCheckInEmail(user, {
         subject: 'Friendly reminder: please check in',
         heading: `Hello ${user.name}, how are you?`,
-        text: `It is almost time for your regular check-in (due ${due.toDateString()}).\n\nPlease press the button below to tell us you are well. That is all you need to do.`,
+        text: `It is almost time for your regular check-in (due ${describeWhen(user, due)}).\n\nPlease press the button below to tell us you are well. That is all you need to do.`,
       });
       await audit(user.id, 'REMINDER_SENT', 'A check-in reminder was emailed to you.');
-      summary.reminded++;
     }
+    return prisma.user.findUnique({ where: { id: user.id } });
+  }
+  return user;
+}
+
+/** Re-check one owner by id and return their latest record. */
+export async function refreshUser(userId) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  return evaluateUser(user);
+}
+
+/** Scheduled job (hourly locally, daily on Vercel). Safe to run any number of times. */
+export async function runInactivitySweep(now = new Date()) {
+  const summary = { reminded: 0, grace: 0, released: 0 };
+  const users = await prisma.user.findMany({ where: { legacyStatus: { in: ['ACTIVE', 'REMINDED', 'GRACE'] } } });
+  for (const user of users) {
+    const before = user.legacyStatus;
+    const after = (await evaluateUser(user, now))?.legacyStatus;
+    if (after === before) continue;
+    if (after === 'REMINDED') summary.reminded++;
+    if (after === 'GRACE') summary.grace++;
+    if (after === 'RELEASED') summary.released++;
   }
   return summary;
 }

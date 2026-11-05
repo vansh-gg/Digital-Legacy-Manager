@@ -36,6 +36,10 @@ model User {
   /// When the grace period ends and the vault is released to nominees.
   graceEndsAt         DateTime?
   statusReason        String?
+  /// Live demo mode: when set, the check-in interval and waiting period are
+  /// counted in seconds instead of days, so a release can be shown live.
+  demoIntervalSeconds Int?
+  demoGraceSeconds    Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
