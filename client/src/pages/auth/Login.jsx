@@ -18,7 +18,9 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
 
-  if (user) return <Navigate to={next} replace />;
+  // Administrators start on their dashboard unless they were heading somewhere specific.
+  const target = (u) => (u.role === 'ADMIN' && next === '/app' ? '/admin' : next);
+  if (user) return <Navigate to={target(user)} replace />;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -26,7 +28,7 @@ export default function Login() {
     setError('');
     try {
       const u = await login(form.email, form.password, { preview });
-      navigate(u.role === 'ADMIN' && next === '/app' ? '/admin' : next, { replace: true });
+      navigate(target(u), { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

@@ -186,6 +186,8 @@ function PlanTimeline({ user, lastReminderAt }) {
   );
 }
 
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
 const VAULT_STATUS = {
   RELEASED: { label: 'Available now', tone: 'info' },
   GRACE: { label: 'Not responding', tone: 'warn' },
@@ -220,7 +222,7 @@ function LeftForMePanel({ vaults, now }) {
         </Button>
       </div>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-        {vaults.map((v) => {
+        {[...vaults].sort((a, b) => (b.ownerStatus === 'RELEASED') - (a.ownerStatus === 'RELEASED')).map((v) => {
           const st = VAULT_STATUS[v.ownerStatus];
           return (
             <li key={v.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3">
@@ -231,7 +233,7 @@ function LeftForMePanel({ vaults, now }) {
                     ? v.liveDemo
                       ? `May open in ${secondsUntil(v.graceEndsAt, now)} seconds`
                       : `May open on ${formatDate(v.graceEndsAt)}`
-                    : `${v.counts.assets} items · ${v.counts.documents} documents · ${v.counts.letters} letters`}
+                    : [plural(v.counts.assets, 'item'), plural(v.counts.documents, 'document'), plural(v.counts.letters, 'letter')].join(' · ')}
                 </p>
               </div>
               {v.ownerStatus === 'RELEASED' ? (
