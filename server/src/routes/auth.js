@@ -11,6 +11,7 @@ import { emailField, nameField, passwordField, phoneField } from '../lib/validat
 import { authLimiter } from '../middleware/security.js';
 import { requireAuth, setSession, clearSession } from '../middleware/auth.js';
 import { publicUser, recordCheckIn } from '../services/legacy.js';
+import { DEMO_EMAILS } from '../services/demoData.js';
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
@@ -22,6 +23,9 @@ router.post('/register', authLimiter, async (req, res) => {
     .object({ name: nameField, email: emailField, password: passwordField, phone: phoneField })
     .parse(req.body);
 
+  if (DEMO_EMAILS.includes(data.email)) {
+    throw new HttpError(409, 'This address is reserved for the demo. Please use your own email address.');
+  }
   if (await prisma.user.findUnique({ where: { email: data.email } })) {
     throw new HttpError(409, 'An account with this email already exists. Please log in instead.');
   }
@@ -47,8 +51,13 @@ router.post('/register', authLimiter, async (req, res) => {
 });
 
 router.post('/login', authLimiter, async (req, res) => {
-  const { email, password } = z
-    .object({ email: emailField, password: z.string().min(1, 'Please enter your password.').max(200) })
+  const { email, password, preview } = z
+    .object({
+      email: emailField,
+      password: z.string().min(1, 'Please enter your password.').max(200),
+      /** Read-only demo preview: look around without it counting as a check-in. */
+      preview: z.boolean().optional(),
+    })
     .parse(req.body);
 
   const invalid = new HttpError(401, 'The email or password is not correct. Please try again.');
@@ -91,6 +100,17 @@ router.post('/login', authLimiter, async (req, res) => {
   }
 
   await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null } });
+
+  if (preview) {
+    if (!config.devTools || !user.isDemo) {
+      throw badRequest('Read-only preview is only available for the demo accounts.');
+    }
+    // No check-in: the seeded reminder / waiting / released state stays exactly as it is.
+    setSession(res, user, { readOnly: true });
+    await audit(user.id, 'DEMO_PREVIEW', 'A read-only demo preview of this account was opened (not a check-in).', req);
+    return res.json({ user: { ...publicUser(user), readOnly: true } });
+  }
+
   // Logging in is proof of life — it resets the check-in timer.
   const updated = await recordCheckIn(user, 'logged in', req);
   setSession(res, updated);
@@ -104,7 +124,7 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/me', requireAuth, (req, res) => {
-  res.json({ user: publicUser(req.user) });
+  res.json({ user: { ...publicUser(req.user), readOnly: req.readOnly } });
 });
 
 router.patch('/me', requireAuth, async (req, res) => {

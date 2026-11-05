@@ -23,6 +23,11 @@ model User {
   /// Incremented on password change / "log out everywhere" to invalidate old sessions.
   tokenVersion Int     @default(0)
 
+  /// USER | ADMIN. Admins can see account status and reset the demo, never vault contents.
+  role         String  @default("USER")
+  /// Seeded demo account: may be reset by an admin and opened in read-only preview.
+  isDemo       Boolean @default(false)
+
   failedLogins Int       @default(0)
   lockedUntil  DateTime?
 
