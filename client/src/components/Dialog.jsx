@@ -26,7 +26,7 @@ export function Dialog({ open, onClose, title, children, wide }) {
       {open && (
         <div className="p-6 sm:p-8">
           <div className="mb-5 flex items-start justify-between gap-4">
-            <h2 id="dialog-title" className="font-serif text-2xl font-semibold text-navy-900 leading-tight">{title}</h2>
+            <h2 id="dialog-title" className="font-serif text-2xl font-semibold text-midnight leading-tight">{title}</h2>
             <button
               type="button"
               onClick={onClose}

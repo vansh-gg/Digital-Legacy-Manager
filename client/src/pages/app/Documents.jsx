@@ -148,7 +148,7 @@ export default function Documents() {
                     <Icon className="size-8" aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h2 className="font-serif text-xl font-semibold text-navy-900">{d.title}</h2>
+                    <h2 className="font-serif text-xl font-semibold text-midnight">{d.title}</h2>
                     <p className="text-base text-muted">
                       {meta.label} · {formatSize(d.size)} · added {formatDate(d.createdAt)}
                     </p>

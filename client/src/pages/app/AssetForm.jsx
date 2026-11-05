@@ -136,7 +136,7 @@ export default function AssetForm() {
                       value={value}
                       checked={selected}
                       onChange={() => setForm({ ...form, category: value })}
-                      className="size-6 accent-[#172a5c]"
+                      className="size-6 accent-[#173b65]"
                     />
                     <Icon className="size-8 shrink-0 text-brand" aria-hidden />
                     <span>
@@ -152,7 +152,7 @@ export default function AssetForm() {
 
         {step === 1 && (
           <div className="space-y-6">
-            <h2 className="font-serif text-2xl font-semibold text-navy-900">Tell us about it</h2>
+            <h2 className="font-serif text-2xl font-semibold text-midnight">Tell us about it</h2>
             <TextField label="Name" hint={`For example: "${meta?.example}"`} value={form.title} onChange={set('title')} required autoFocus />
             <TextField label="Bank or company name" value={form.institution} onChange={set('institution')} optional hint="For example: State Bank of India, Google, LIC" />
             <TextField
@@ -167,14 +167,14 @@ export default function AssetForm() {
 
         {step === 2 && (
           <div className="space-y-6">
-            <h2 className="font-serif text-2xl font-semibold text-navy-900">Private login details</h2>
+            <h2 className="font-serif text-2xl font-semibold text-midnight">Private login details</h2>
             <Alert tone="info" title="These are locked away safely">
               They are encrypted before being saved. Only you can open them (with your password), and your chosen people only
               if your vault is released. You can skip this step.
             </Alert>
             {editing && hadSecret && (
               <label className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-2 border-line px-4 text-lg font-bold">
-                <input type="checkbox" className="size-7 accent-[#172a5c]" checked={changeSecret} onChange={(e) => setChangeSecret(e.target.checked)} />
+                <input type="checkbox" className="size-7 accent-[#173b65]" checked={changeSecret} onChange={(e) => setChangeSecret(e.target.checked)} />
                 Replace the saved private details
               </label>
             )}
@@ -192,7 +192,7 @@ export default function AssetForm() {
 
         {step === 3 && (
           <div className="space-y-6">
-            <h2 className="font-serif text-2xl font-semibold text-navy-900">Who should receive this?</h2>
+            <h2 className="font-serif text-2xl font-semibold text-midnight">Who should receive this?</h2>
             <CheckboxList
               legend="Choose one or more trusted people"
               options={people.map((n) => ({ value: n.id, label: n.name, description: n.relationship }))}
@@ -213,7 +213,7 @@ export default function AssetForm() {
 
         {step === 4 && (
           <div className="space-y-4 text-lg">
-            <h2 className="font-serif text-2xl font-semibold text-navy-900">Please check everything</h2>
+            <h2 className="font-serif text-2xl font-semibold text-midnight">Please check everything</h2>
             <dl className="divide-y divide-line rounded-xl border border-line">
               {[
                 ['Type', meta?.label],

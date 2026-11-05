@@ -41,16 +41,16 @@ const PREVIEW_ITEMS = [
 function HeroPreview() {
   return (
     <div className="relative mx-auto w-full max-w-md lg:max-w-none" aria-hidden>
-      <div className="absolute -inset-6 rounded-[2rem] bg-gold/10 blur-2xl" />
+      <div className="absolute -inset-6 rounded-[2rem] bg-ice/10 blur-2xl" />
 
       <div className="relative rounded-3xl bg-white p-6 text-ink shadow-[var(--shadow-lift)]">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold-dark">Ramesh's plan</p>
-            <p className="font-serif text-xl font-semibold text-navy-900">Almost ready</p>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-deep">Ramesh's plan</p>
+            <p className="font-serif text-xl font-semibold text-midnight">Almost ready</p>
           </div>
-          <Ring value={83} size={72} stroke={7} track="#eef0f5" color="#172a5c" label="">
-            <span className="text-base font-bold text-navy-900">83%</span>
+          <Ring value={83} size={72} stroke={7} track="#e2ebf5" color="#173b65" label="">
+            <span className="text-base font-bold text-midnight">83%</span>
           </Ring>
         </div>
         <ul className="mt-5 divide-y divide-line">
@@ -61,7 +61,7 @@ function HeroPreview() {
                 <p className="truncate font-bold">{title}</p>
                 <p className="text-sm text-muted">Goes to {to}</p>
               </div>
-              <Lock className="size-4 text-gold-dark" />
+              <Lock className="size-4 text-deep" />
             </li>
           ))}
         </ul>
@@ -74,7 +74,7 @@ function HeroPreview() {
           </span>
           <div>
             <p className="text-sm text-muted">Next check-in</p>
-            <p className="font-bold text-navy-900">in 24 days</p>
+            <p className="font-bold text-midnight">in 24 days</p>
           </div>
         </div>
       </div>
@@ -108,9 +108,9 @@ const STEPS = [
 ];
 
 const TIMELINE = [
-  { label: 'Active', text: 'Everything stays private. You check in now and then.', tone: 'bg-ok' },
-  { label: 'Reminder', text: 'A friendly email 3 days before your check-in is due.', tone: 'bg-gold' },
-  { label: 'Waiting period', text: 'Urgent emails to you; your family is asked to check on you.', tone: 'bg-[#d97706]' },
+  { label: 'Active', text: 'Everything stays private. You check in now and then.', tone: 'bg-ice/35' },
+  { label: 'Reminder', text: 'A friendly email 3 days before your check-in is due.', tone: 'bg-ice/60' },
+  { label: 'Waiting period', text: 'Urgent emails to you; your family is asked to check on you.', tone: 'bg-ice/85' },
   { label: 'Handover', text: 'Only now do your chosen people see what you left them.', tone: 'bg-white' },
 ];
 
@@ -156,8 +156,8 @@ const FAQ = [
 function SectionHeading({ eyebrow, title, intro, light, center = true }) {
   return (
     <div className={`${center ? 'mx-auto text-center' : ''} max-w-2xl`}>
-      <p className={`text-sm font-bold uppercase tracking-[0.18em] ${light ? 'text-gold' : 'text-gold-dark'}`}>{eyebrow}</p>
-      <h2 className={`mt-3 font-serif text-3xl font-semibold leading-tight sm:text-4xl ${light ? 'text-white' : 'text-navy-900'}`}>
+      <p className={`text-sm font-bold uppercase tracking-[0.18em] ${light ? 'text-ice' : 'text-deep'}`}>{eyebrow}</p>
+      <h2 className={`mt-3 font-serif text-3xl font-semibold leading-tight sm:text-4xl ${light ? 'text-white' : 'text-midnight'}`}>
         {title}
       </h2>
       {intro && <p className={`mt-4 text-lg ${light ? 'text-white/75' : 'text-muted'}`}>{intro}</p>}
@@ -182,30 +182,30 @@ export default function Landing() {
           </nav>
           <div className="flex items-center gap-2">
             <Button to="/login" variant="light" size="sm" className="hidden sm:inline-flex">Log in</Button>
-            <Button to="/register" variant="gold" size="sm">Get started</Button>
+            <Button to="/register" variant="accent" size="sm">Get started</Button>
           </div>
         </header>
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 pb-24 pt-10 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pb-32 lg:pt-16">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-sm font-bold text-gold">
+            <p className="inline-flex items-center gap-2 rounded-full border border-ice/40 bg-ice/10 px-4 py-1.5 text-sm font-bold text-ice">
               <Sparkles className="size-4" aria-hidden /> A digital will for the people you love
             </p>
             <h1 className="mt-6 font-serif text-[2.6rem] font-semibold leading-[1.08] sm:text-6xl">
-              Everything your family will need, <span className="text-gold-gradient">kept safe</span> until it matters.
+              Everything your family will need, <span className="text-ice-gradient">kept safe</span> until it matters.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-white/80 sm:text-xl">
               Record your bank accounts, policies, property papers and wishes in one secure place. They are passed to the
               people you choose — only if you stop checking in.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button to="/register" variant="gold" size="lg" icon={ArrowRight}>Create my free plan</Button>
+              <Button to="/register" variant="accent" size="lg" icon={ArrowRight}>Create my free plan</Button>
               <Button href="#how" variant="light" size="lg">See how it works</Button>
             </div>
             <ul className="mt-9 flex flex-wrap gap-x-6 gap-y-2 text-[0.95rem] text-white/70">
               {['AES-256 encryption', 'Free to use', 'No technical skills needed'].map((t) => (
                 <li key={t} className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-gold" aria-hidden /> {t}
+                  <CheckCircle2 className="size-4 text-ice" aria-hidden /> {t}
                 </li>
               ))}
             </ul>
@@ -230,8 +230,8 @@ export default function Landing() {
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {PROBLEMS.map(({ icon, title, text }) => (
             <div key={title} className="rounded-2xl border border-line bg-white p-7 shadow-[var(--shadow-soft)]">
-              <IconChip icon={icon} tone="gold" size="lg" />
-              <h3 className="mt-5 font-serif text-xl font-semibold text-navy-900">{title}</h3>
+              <IconChip icon={icon} tone="ice" size="lg" />
+              <h3 className="mt-5 font-serif text-xl font-semibold text-midnight">{title}</h3>
               <p className="mt-2 text-muted">{text}</p>
             </div>
           ))}
@@ -243,16 +243,16 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-24">
           <SectionHeading eyebrow="How it works" title="Four simple steps. Take them at your own pace." />
           <ol className="relative mt-14 grid gap-10 md:grid-cols-4 md:gap-6">
-            <div className="absolute left-[12.5%] right-[12.5%] top-7 hidden h-px bg-gradient-to-r from-gold/0 via-gold/60 to-gold/0 md:block" aria-hidden />
+            <div className="absolute left-[12.5%] right-[12.5%] top-7 hidden h-px bg-gradient-to-r from-ice/0 via-ice/60 to-ice/0 md:block" aria-hidden />
             {STEPS.map(({ icon: Icon, title, text }, i) => (
               <li key={title} className="relative text-center">
-                <span className="relative mx-auto flex size-14 items-center justify-center rounded-2xl bg-navy-900 text-gold shadow-[var(--shadow-lift)]">
+                <span className="relative mx-auto flex size-14 items-center justify-center rounded-2xl bg-midnight text-ice shadow-[var(--shadow-lift)]">
                   <Icon className="size-7" aria-hidden />
-                  <span className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy-950">
+                  <span className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-ice text-xs font-bold text-midnight-deep">
                     {i + 1}
                   </span>
                 </span>
-                <h3 className="mt-5 font-serif text-xl font-semibold text-navy-900">{title}</h3>
+                <h3 className="mt-5 font-serif text-xl font-semibold text-midnight">{title}</h3>
                 <p className="mx-auto mt-2 max-w-60 text-muted">{text}</p>
               </li>
             ))}
@@ -285,8 +285,8 @@ export default function Landing() {
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2">
             {SAFETY.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="flex gap-4 rounded-2xl border border-white/10 bg-navy-950/40 p-6">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold">
+              <div key={title} className="flex gap-4 rounded-2xl border border-white/10 bg-midnight-deep/40 p-6">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ice/15 text-ice">
                   <Icon className="size-6" aria-hidden />
                 </span>
                 <div>
@@ -306,7 +306,7 @@ export default function Landing() {
           {FEATURES.map(({ icon, title, text }) => (
             <div key={title} className="group rounded-2xl border border-line bg-white p-6 shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)]">
               <IconChip icon={icon} />
-              <h3 className="mt-4 text-lg font-bold text-navy-900">{title}</h3>
+              <h3 className="mt-4 text-lg font-bold text-midnight">{title}</h3>
               <p className="mt-1.5 text-muted">{text}</p>
             </div>
           ))}
@@ -316,21 +316,21 @@ export default function Landing() {
       {/* ---------------- For you / for family ---------------- */}
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:pb-24">
         <div className="grid gap-5 lg:grid-cols-2">
-          <div className="rounded-3xl bg-gold-soft p-8 sm:p-10">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-gold-dark">For you</p>
-            <h3 className="mt-3 font-serif text-2xl font-semibold text-navy-900">Peace of mind, in your own words.</h3>
+          <div className="rounded-3xl bg-ice-soft p-8 sm:p-10">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-deep">For you</p>
+            <h3 className="mt-3 font-serif text-2xl font-semibold text-midnight">Peace of mind, in your own words.</h3>
             <ul className="mt-5 space-y-3">
               {['Write down what matters, one question at a time', 'Decide who receives each item — and what they should do', 'Change your mind whenever you like'].map((t) => (
-                <li key={t} className="flex gap-3"><CheckCircle2 className="mt-1 size-5 shrink-0 text-gold-dark" aria-hidden /> {t}</li>
+                <li key={t} className="flex gap-3"><CheckCircle2 className="mt-1 size-5 shrink-0 text-deep" aria-hidden /> {t}</li>
               ))}
             </ul>
           </div>
-          <div className="rounded-3xl bg-navy-100 p-8 sm:p-10">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-navy-700">For your family</p>
-            <h3 className="mt-3 font-serif text-2xl font-semibold text-navy-900">Clarity at the hardest time.</h3>
+          <div className="rounded-3xl bg-ice-soft p-8 sm:p-10">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-deep">For your family</p>
+            <h3 className="mt-3 font-serif text-2xl font-semibold text-midnight">Clarity at the hardest time.</h3>
             <ul className="mt-5 space-y-3">
               {['A private invitation — nothing visible until it is needed', 'Clear instructions for every account and policy', 'Personal letters, delivered only to them'].map((t) => (
-                <li key={t} className="flex gap-3"><CheckCircle2 className="mt-1 size-5 shrink-0 text-navy-700" aria-hidden /> {t}</li>
+                <li key={t} className="flex gap-3"><CheckCircle2 className="mt-1 size-5 shrink-0 text-deep" aria-hidden /> {t}</li>
               ))}
             </ul>
           </div>
@@ -344,7 +344,7 @@ export default function Landing() {
           <div className="mt-10 divide-y divide-line rounded-2xl border border-line">
             {FAQ.map(({ q, a }) => (
               <details key={q} className="group px-6 py-5 open:bg-paper/60">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-bold text-navy-900">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-bold text-midnight">
                   {q}
                   <ChevronDown className="size-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
                 </summary>
@@ -363,7 +363,7 @@ export default function Landing() {
             Already invited by someone? Open the link in your email and it will guide you step by step.
           </p>
           <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button to="/register" variant="gold" size="lg" icon={ArrowRight}>Create my free plan</Button>
+            <Button to="/register" variant="accent" size="lg" icon={ArrowRight}>Create my free plan</Button>
             <Button to="/login" variant="light" size="lg">Log in</Button>
           </div>
         </div>

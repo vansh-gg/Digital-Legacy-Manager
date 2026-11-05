@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Volume2, Square } from 'lucide-react';
 import { TEXT_SIZES, usePrefs } from '../context/PrefsContext.jsx';
 
-/** Text-size switch and "Read this page aloud". `tone="light"` for navy backgrounds. */
+/** Text-size switch and "Read this page aloud". `tone="light"` for midnight backgrounds. */
 export function AccessibilityBar({ tone = 'dark' }) {
   const { textSize, setTextSize } = usePrefs();
   const [speaking, setSpeaking] = useState(false);
@@ -44,8 +44,8 @@ export function AccessibilityBar({ tone = 'dark' }) {
             className={`min-h-9 min-w-9 rounded-lg px-2 font-bold cursor-pointer transition-colors ${
               textSize === s.value
                 ? light
-                  ? 'bg-gold text-navy-950'
-                  : 'bg-navy-800 text-white'
+                  ? 'bg-ice text-midnight-deep'
+                  : 'bg-deep text-white'
                 : light
                   ? 'hover:bg-white/10'
                   : 'hover:bg-black/5'
@@ -61,7 +61,7 @@ export function AccessibilityBar({ tone = 'dark' }) {
           type="button"
           onClick={toggleSpeech}
           className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-bold cursor-pointer transition-colors ${shell} ${
-            light ? 'hover:bg-white/20' : 'hover:border-navy-700'
+            light ? 'hover:bg-white/20' : 'hover:border-deep'
           }`}
         >
           {speaking ? <Square className="size-4" aria-hidden /> : <Volume2 className="size-4" aria-hidden />}

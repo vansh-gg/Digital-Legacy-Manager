@@ -43,12 +43,12 @@ export default function SharedVault() {
 
       {data.letters.length > 0 && (
         <section className="mb-10 space-y-4" aria-labelledby="letters-heading">
-          <h2 id="letters-heading" className="font-serif text-2xl font-semibold text-navy-900">Letters for you</h2>
+          <h2 id="letters-heading" className="font-serif text-2xl font-semibold text-midnight">Letters for you</h2>
           {data.letters.map((l) => (
-            <Card key={l.id} as="article" className="bg-[#fffdf7]">
+            <Card key={l.id} as="article" className="bg-[#f8fbfe]">
               <div className="flex items-center gap-3">
                 <Mail className="size-7 text-brand" aria-hidden />
-                <h3 className="font-serif text-2xl font-semibold text-navy-900">{l.subject}</h3>
+                <h3 className="font-serif text-2xl font-semibold text-midnight">{l.subject}</h3>
               </div>
               <p className="mt-4 whitespace-pre-line text-xl leading-relaxed">{l.body}</p>
             </Card>
@@ -57,7 +57,7 @@ export default function SharedVault() {
       )}
 
       <section className="mb-10 space-y-4" aria-labelledby="assets-heading">
-        <h2 id="assets-heading" className="font-serif text-2xl font-semibold text-navy-900">Accounts and assets</h2>
+        <h2 id="assets-heading" className="font-serif text-2xl font-semibold text-midnight">Accounts and assets</h2>
         {data.assets.length === 0 && <p className="text-lg text-muted">No accounts were assigned to you.</p>}
         {data.assets.map((a) => {
           const meta = ASSET_CATEGORIES[a.category] || ASSET_CATEGORIES.OTHER;
@@ -68,7 +68,7 @@ export default function SharedVault() {
                 <Icon className="size-9 shrink-0 text-brand" aria-hidden />
                 <div className="min-w-0">
                   <p className="text-base font-bold text-muted">{meta.label}</p>
-                  <h3 className="font-serif text-2xl font-semibold text-navy-900">{a.title}</h3>
+                  <h3 className="font-serif text-2xl font-semibold text-midnight">{a.title}</h3>
                   {(a.institution || a.identifierHint) && <p className="text-lg text-muted">{[a.institution, a.identifierHint].filter(Boolean).join(' · ')}</p>}
                 </div>
               </div>
@@ -87,14 +87,14 @@ export default function SharedVault() {
       </section>
 
       <section className="space-y-4" aria-labelledby="docs-heading">
-        <h2 id="docs-heading" className="font-serif text-2xl font-semibold text-navy-900">Documents</h2>
+        <h2 id="docs-heading" className="font-serif text-2xl font-semibold text-midnight">Documents</h2>
         {data.documents.length === 0 && <p className="text-lg text-muted">No documents were shared with you.</p>}
         {data.documents.map((d) => {
           const meta = DOCUMENT_CATEGORIES[d.category] || DOCUMENT_CATEGORIES.OTHER;
           return (
             <Card key={d.id} as="article" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="font-serif text-xl font-semibold text-navy-900">{d.title}</h3>
+                <h3 className="font-serif text-xl font-semibold text-midnight">{d.title}</h3>
                 <p className="text-base text-muted">{meta.label} · {formatSize(d.size)}</p>
               </div>
               <Button

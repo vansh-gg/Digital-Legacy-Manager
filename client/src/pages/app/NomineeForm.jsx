@@ -90,7 +90,7 @@ export default function NomineeForm() {
         </Card>
         {!editing && (
           <Card className="h-fit bg-brand-soft border-brand/30">
-            <h2 className="font-serif text-xl font-semibold text-navy-900">What happens next?</h2>
+            <h2 className="font-serif text-xl font-semibold text-midnight">What happens next?</h2>
             <ol className="mt-3 list-decimal space-y-2 pl-6 text-lg">
               <li>We email them an invitation explaining your wishes.</li>
               <li>They accept by creating their own account.</li>

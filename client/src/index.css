@@ -1,37 +1,39 @@
 @import "tailwindcss";
 
 /*
- * Design system — "premium & calm".
- *  - Deep navy + warm gold, like a private bank: trustworthy, quiet, confident
- *  - Serif headings (Fraunces) for warmth; Atkinson Hyperlegible body text,
- *    designed by the Braille Institute for readers with low vision
- *  - 17px base text, scalable to 115% / 130% from the header
- *  - Body text contrast ≥ 7:1, thick high-visibility focus ring
+ * Design system — high-contrast monochrome slate blue.
+ *  - Dark surfaces: midnight. Light surfaces: blue mist + white cards.
+ *  - One accent family (ice blue / deep blue) — no warm accents.
+ *  - Serif headings (Fraunces); Atkinson Hyperlegible body text, designed by
+ *    the Braille Institute for readers with low vision.
+ *  - 15px base text, scalable to 115% / 130% from the header.
+ *  - Every text pair ≥ 4.5:1 (WCAG AA); most ≥ 7:1. See docs/ACCESSIBILITY.md.
  */
 @theme {
   --font-sans: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
 
-  --color-ink: #131b2e;
-  --color-muted: #4a5468;
-  --color-paper: #f7f5f0;
-  --color-line: #e3e0d8;
+  /* Palette */
+  --color-midnight: #101f33;        /* dark surfaces, headings          */
+  --color-midnight-deep: #0b1626;   /* footer, deepest panels           */
+  --color-deep: #173b65;            /* primary buttons on light, links  */
+  --color-ice: #bbd6f3;             /* primary buttons / accents on dark*/
+  --color-ice-hover: #d4e5f7;
+  --color-ice-soft: #e2ebf5;        /* tinted chips and badges on light */
+  --color-mist: #f1f5f9;            /* page background                  */
+  --color-slate: #445873;           /* secondary text                   */
 
-  --color-navy-950: #0a1229;
-  --color-navy-900: #0f1d42;
-  --color-navy-800: #172a5c;
-  --color-navy-700: #213a7a;
-  --color-navy-100: #e8ecf6;
+  /* Semantic roles used across the app */
+  --color-ink: #101f33;
+  --color-muted: #445873;
+  --color-paper: #f1f5f9;
+  --color-line: #d5dee8;
+  --color-brand: #173b65;
+  --color-brand-dark: #101f33;
+  --color-brand-soft: #e2ebf5;
+  --color-focus: #2f6db3;
 
-  --color-gold: #c9a14a;
-  --color-gold-dark: #8a6a22;
-  --color-gold-soft: #f7f0dd;
-
-  /* Semantic aliases used across the app */
-  --color-brand: #172a5c;
-  --color-brand-dark: #0f1d42;
-  --color-brand-soft: #e8ecf6;
-
+  /* Status colours (always paired with a text label) */
   --color-ok: #166045;
   --color-ok-soft: #e4f3ec;
   --color-warn: #8a5a00;
@@ -39,14 +41,14 @@
   --color-danger: #a1180f;
   --color-danger-soft: #fbe9e7;
 
-  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04), 0 10px 30px -12px rgb(16 24 40 / 0.14);
-  --shadow-lift: 0 2px 4px rgb(16 24 40 / 0.05), 0 24px 48px -20px rgb(15 29 66 / 0.35);
+  --shadow-soft: 0 1px 2px rgb(16 31 51 / 0.05), 0 8px 24px -12px rgb(16 31 51 / 0.16);
+  --shadow-lift: 0 2px 4px rgb(16 31 51 / 0.06), 0 20px 40px -18px rgb(16 31 51 / 0.38);
 }
 
 /* Base styles live in the base layer so Tailwind utility classes can override them. */
 @layer base {
   html {
-    font-size: calc(17px * var(--text-scale, 1));
+    font-size: calc(15px * var(--text-scale, 1));
     -webkit-text-size-adjust: 100%;
   }
   html[data-text-size="large"] { --text-scale: 1.15; }
@@ -54,7 +56,7 @@
 
   body {
     margin: 0;
-    background: var(--color-paper);
+    background: var(--color-mist);
     color: var(--color-ink);
     font-family: var(--font-sans);
     line-height: 1.6;
@@ -63,27 +65,29 @@
 
   h1, h2, h3 { letter-spacing: -0.01em; }
 
+  /* Double focus ring: blue inner ring shows on light surfaces, ice outer ring on dark ones. */
   :focus-visible {
-    outline: 3px solid #e0a82e;
-    outline-offset: 3px;
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 7px var(--color-ice);
     border-radius: 6px;
   }
 
-  a { color: var(--color-navy-700); }
+  a { color: var(--color-deep); }
 
-  dialog::backdrop { background: rgb(10 18 41 / 0.6); backdrop-filter: blur(2px); }
+  dialog::backdrop { background: rgb(11 22 38 / 0.6); backdrop-filter: blur(2px); }
 }
 
 @layer components {
-  /* Navy panel with a soft gold glow, used for hero areas. */
+  /* Midnight panel with a subtle cool glow, used for hero areas, sidebar and banners. */
   .bg-hero {
     background:
-      radial-gradient(60rem 30rem at 85% -10%, rgb(201 161 74 / 0.22), transparent 60%),
-      radial-gradient(40rem 30rem at -10% 110%, rgb(33 58 122 / 0.9), transparent 60%),
-      linear-gradient(160deg, #0f1d42 0%, #0a1229 100%);
+      radial-gradient(60rem 30rem at 85% -10%, rgb(187 214 243 / 0.14), transparent 60%),
+      radial-gradient(40rem 30rem at -10% 110%, rgb(23 59 101 / 0.7), transparent 60%),
+      linear-gradient(160deg, #101f33 0%, #0b1626 100%);
   }
-  .text-gold-gradient {
-    background: linear-gradient(90deg, #e7c77b, #c9a14a);
+  .text-ice-gradient {
+    background: linear-gradient(90deg, #d4e5f7, #bbd6f3);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -93,7 +97,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+    background-image: radial-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px);
     background-size: 22px 22px;
   }
 }
@@ -104,6 +108,6 @@
 
 .skip-link {
   position: absolute; left: 1rem; top: -100px; z-index: 50;
-  background: var(--color-ink); color: #fff; padding: 0.75rem 1rem; border-radius: 0.5rem;
+  background: var(--color-midnight); color: #fff; padding: 0.75rem 1rem; border-radius: 0.5rem;
 }
 .skip-link:focus { top: 1rem; }

@@ -45,7 +45,7 @@ export default function Letters() {
             <li key={l.id}>
               <Card as="article">
                 <p className="text-base font-bold text-muted">For {l.nomineeName} · last changed {formatDate(l.updatedAt)}</p>
-                <h2 className="font-serif text-2xl font-semibold text-navy-900">{l.subject}</h2>
+                <h2 className="font-serif text-2xl font-semibold text-midnight">{l.subject}</h2>
                 <p className="mt-3 line-clamp-3 whitespace-pre-line text-lg">{l.body}</p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Button variant="secondary" size="sm" icon={Pencil} to={`/app/letters/${l.id}/edit`}>Read or change</Button>

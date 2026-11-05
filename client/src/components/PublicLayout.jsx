@@ -29,7 +29,7 @@ export function PublicLayout() {
 
 export function SiteFooter() {
   return (
-    <footer className="bg-navy-950 text-white/70">
+    <footer className="bg-midnight-deep text-white/70">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between">
         <div className="max-w-md">
           <Logo tone="light" />
@@ -40,7 +40,7 @@ export function SiteFooter() {
         </div>
         <div className="text-sm md:text-right">
           <p>AES-256 encrypted · Built for accessibility</p>
-          <p className="mt-1 text-white/45">Not a substitute for a registered legal will.</p>
+          <p className="mt-1 text-white/70">Not a substitute for a registered legal will.</p>
         </div>
       </div>
     </footer>
@@ -59,15 +59,15 @@ export function AuthCard({ title, intro, children }) {
     <div className="mx-auto grid max-w-6xl gap-0 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:py-14">
       <aside className="bg-hero grain relative hidden overflow-hidden rounded-l-3xl p-10 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="relative">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-gold">Digital Legacy Manager</p>
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-ice">Digital Legacy Manager</p>
           <p className="mt-5 font-serif text-[2rem] font-semibold leading-tight">
-            Peace of mind for you. <span className="text-gold-gradient">Clarity for your family.</span>
+            Peace of mind for you. <span className="text-ice-gradient">Clarity for your family.</span>
           </p>
         </div>
         <ul className="relative space-y-5">
           {REASSURANCE.map(({ icon: Icon, text }) => (
             <li key={text} className="flex gap-3.5">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-gold">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-ice">
                 <Icon className="size-5" aria-hidden />
               </span>
               <span className="pt-1.5 text-white/85">{text}</span>
@@ -77,7 +77,7 @@ export function AuthCard({ title, intro, children }) {
         <Button to="/" variant="light" size="sm" className="relative w-fit">← Back to home</Button>
       </aside>
       <div className="rounded-3xl border border-line bg-white p-6 shadow-[var(--shadow-soft)] sm:p-10 lg:rounded-l-none">
-        <h1 className="font-serif text-3xl font-semibold text-navy-900">{title}</h1>
+        <h1 className="font-serif text-3xl font-semibold text-midnight">{title}</h1>
         {intro && <p className="mt-2 text-lg text-muted">{intro}</p>}
         <div className="mt-7">{children}</div>
       </div>

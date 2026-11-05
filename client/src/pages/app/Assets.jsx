@@ -71,7 +71,7 @@ export default function Assets() {
                     </span>
                     <div className="min-w-0">
                       <p className="text-base font-bold text-muted">{meta.label}</p>
-                      <h2 className="font-serif text-2xl font-semibold text-navy-900 leading-snug">{a.title}</h2>
+                      <h2 className="font-serif text-2xl font-semibold text-midnight leading-snug">{a.title}</h2>
                       {(a.institution || a.identifierHint) && (
                         <p className="text-lg text-muted">{[a.institution, a.identifierHint].filter(Boolean).join(' · ')}</p>
                       )}

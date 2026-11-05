@@ -69,7 +69,7 @@ export default function Nominees() {
                   <Card as="article" className="flex h-full flex-col">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h2 className="font-serif text-2xl font-semibold text-navy-900">{n.name}</h2>
+                        <h2 className="font-serif text-2xl font-semibold text-midnight">{n.name}</h2>
                         <p className="text-lg text-muted">{n.relationship}</p>
                       </div>
                       <Badge tone={status.tone}>{status.label}</Badge>

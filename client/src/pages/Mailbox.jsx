@@ -28,7 +28,7 @@ export default function Mailbox() {
               <li key={m.id}>
                 <Card as="article">
                   <p className="text-base text-muted">To <strong className="text-ink">{m.to}</strong> · {formatDateTime(m.createdAt)}</p>
-                  <h2 className="mt-1 font-serif text-xl font-semibold text-navy-900">{m.subject}</h2>
+                  <h2 className="mt-1 font-serif text-xl font-semibold text-midnight">{m.subject}</h2>
                   <details className="mt-2">
                     <summary className="cursor-pointer text-lg font-bold text-brand">Read the email</summary>
                     <p className="mt-3 whitespace-pre-line text-lg">{m.text}</p>

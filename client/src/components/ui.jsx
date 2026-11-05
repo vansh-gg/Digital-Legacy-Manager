@@ -9,10 +9,10 @@ import { AlertTriangle, CheckCircle2, Info, Loader2, XCircle } from 'lucide-reac
 export const cx = (...c) => c.filter(Boolean).join(' ');
 
 const BUTTON_VARIANTS = {
-  primary: 'bg-navy-800 text-white border-navy-800 hover:bg-navy-900 shadow-sm',
-  gold: 'bg-gold text-navy-950 border-gold hover:bg-[#d8b25c] shadow-[0_8px_24px_-10px_rgb(201_161_74/0.8)]',
-  secondary: 'bg-white text-navy-800 border-[#cfd5e3] hover:border-navy-700 hover:bg-navy-100/50',
-  light: 'bg-white/10 text-white border-white/25 hover:bg-white/20 backdrop-blur',
+  primary: 'bg-deep text-white border-deep hover:bg-midnight shadow-sm',
+  accent: 'bg-ice text-midnight border-ice hover:bg-ice-hover hover:border-ice-hover shadow-[0_8px_24px_-12px_rgb(187_214_243/0.55)]',
+  secondary: 'bg-white text-deep border-[#c3cfdd] hover:border-deep hover:bg-ice-soft',
+  light: 'bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur',
   danger: 'bg-danger text-white border-danger hover:bg-[#7f130c]',
   quiet: 'bg-transparent text-muted border-transparent hover:bg-black/5 hover:text-ink',
   success: 'bg-ok text-white border-ok hover:bg-[#0f4a35] shadow-sm',
@@ -59,8 +59,8 @@ export function Card({ className, children, as: Tag = 'section', ...props }) {
 /** Small coloured square holding an icon. */
 export function IconChip({ icon: Icon, tone = 'navy', size = 'md' }) {
   const tones = {
-    navy: 'bg-navy-100 text-navy-800',
-    gold: 'bg-gold-soft text-gold-dark',
+    navy: 'bg-ice-soft text-deep',
+    ice: 'bg-midnight text-ice',
     ok: 'bg-ok-soft text-ok',
     warn: 'bg-warn-soft text-warn',
     danger: 'bg-danger-soft text-danger',
@@ -83,8 +83,8 @@ export function PageHeader({ title, intro, action, back, eyebrow }) {
       )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-3xl">
-          {eyebrow && <p className="mb-1 text-sm font-bold uppercase tracking-[0.14em] text-gold-dark">{eyebrow}</p>}
-          <h1 className="font-serif text-3xl font-semibold leading-tight text-navy-900 sm:text-[2.35rem]">{title}</h1>
+          {eyebrow && <p className="mb-1 text-sm font-bold uppercase tracking-[0.14em] text-deep">{eyebrow}</p>}
+          <h1 className="font-serif text-3xl font-semibold leading-tight text-midnight sm:text-[2.35rem]">{title}</h1>
           {intro && <p className="mt-2 text-lg text-muted">{intro}</p>}
         </div>
         {action && <div className="shrink-0">{action}</div>}
@@ -94,7 +94,7 @@ export function PageHeader({ title, intro, action, back, eyebrow }) {
 }
 
 const ALERT_TONES = {
-  info: { cls: 'bg-navy-100/70 border-navy-700/20 text-navy-800', icon: Info },
+  info: { cls: 'bg-ice-soft/70 border-deep/20 text-deep', icon: Info },
   ok: { cls: 'bg-ok-soft border-ok/25 text-ok', icon: CheckCircle2 },
   warn: { cls: 'bg-warn-soft border-warn/25 text-warn', icon: AlertTriangle },
   danger: { cls: 'bg-danger-soft border-danger/25 text-danger', icon: XCircle },
@@ -115,11 +115,11 @@ export function Alert({ tone = 'info', title, children, className, role }) {
 
 export function Badge({ tone = 'info', children, className }) {
   const tones = {
-    info: 'bg-navy-100 text-navy-800',
+    info: 'bg-ice-soft text-deep',
     ok: 'bg-ok-soft text-ok',
     warn: 'bg-warn-soft text-warn',
     danger: 'bg-danger-soft text-danger',
-    gold: 'bg-gold-soft text-gold-dark',
+    ice: 'bg-ice-soft text-deep',
     neutral: 'bg-black/5 text-ink',
   };
   return (
@@ -146,9 +146,9 @@ function FieldShell({ id, label, hint, error, optional, children }) {
 
 const inputClass = (error) =>
   cx(
-    'w-full rounded-xl border bg-white px-4 py-2.5 text-base text-ink placeholder:text-[#7a8292] transition-colors',
-    'focus:outline-none focus:ring-4 focus:ring-navy-700/15',
-    error ? 'border-danger' : 'border-[#c9cfdb] focus:border-navy-700',
+    'w-full rounded-xl border bg-white px-4 py-2.5 text-base text-ink placeholder:text-[#5b6b80] transition-colors',
+    'focus:outline-none focus:ring-4 focus:ring-deep/20',
+    error ? 'border-danger' : 'border-[#c3cfdd] focus:border-deep',
   );
 
 const describedBy = (id, hint, error) => [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
@@ -212,10 +212,10 @@ export function CheckboxList({ legend, hint, options, value, onChange, emptyText
           key={o.value}
           className={cx(
             'flex min-h-12 cursor-pointer items-center gap-3.5 rounded-xl border px-4 py-2.5 text-base transition-colors',
-            value.includes(o.value) ? 'border-navy-700 bg-navy-100/60' : 'border-line bg-white hover:border-navy-700/50',
+            value.includes(o.value) ? 'border-deep bg-ice-soft/60' : 'border-line bg-white hover:border-deep/50',
           )}
         >
-          <input type="checkbox" className="size-5 accent-[#172a5c]" checked={value.includes(o.value)} onChange={() => toggle(o.value)} />
+          <input type="checkbox" className="size-5 accent-[#173b65]" checked={value.includes(o.value)} onChange={() => toggle(o.value)} />
           <Avatar name={o.label} size="sm" />
           <span>
             <span className="font-bold">{o.label}</span>
@@ -227,7 +227,7 @@ export function CheckboxList({ legend, hint, options, value, onChange, emptyText
   );
 }
 
-const AVATAR_COLORS = ['#172a5c', '#8a6a22', '#166045', '#7a2e5a', '#2f5d8a', '#6b4f1d'];
+const AVATAR_COLORS = ['#173b65', '#2f5d8a', '#445873', '#1e4a7d', '#101f33', '#355f8f'];
 
 /** Initials in a coloured circle. */
 export function Avatar({ name = '', size = 'md' }) {
@@ -251,7 +251,7 @@ export function Avatar({ name = '', size = 'md' }) {
 }
 
 /** Circular progress indicator with content in the middle. */
-export function Ring({ value, max = 100, size = 120, stroke = 10, color = '#c9a14a', track = 'rgb(255 255 255 / 0.15)', children, label }) {
+export function Ring({ value, max = 100, size = 120, stroke = 10, color = '#bbd6f3', track = 'rgb(255 255 255 / 0.15)', children, label }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, value / max));
@@ -301,13 +301,13 @@ export function ErrorState({ error, onRetry }) {
 export function EmptyState({ icon: Icon, title, children, action }) {
   return (
     <Card className="relative overflow-hidden py-14 text-center">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-gold-soft/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-ice-soft/60 to-transparent" />
       {Icon && (
-        <span className="relative mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-navy-900 text-gold shadow-[var(--shadow-lift)]">
+        <span className="relative mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl bg-midnight text-ice shadow-[var(--shadow-lift)]">
           <Icon className="size-8" aria-hidden />
         </span>
       )}
-      <h2 className="relative font-serif text-2xl font-semibold text-navy-900">{title}</h2>
+      <h2 className="relative font-serif text-2xl font-semibold text-midnight">{title}</h2>
       {children && <p className="relative mx-auto mt-2 max-w-xl text-lg text-muted">{children}</p>}
       {action && <div className="relative mt-7">{action}</div>}
     </Card>
