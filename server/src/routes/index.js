@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import adminRoutes from './admin.js';
 import authRoutes from './auth.js';
 import assetRoutes from './assets.js';
 import checkInRoutes from './checkin.js';
@@ -21,6 +22,7 @@ export function registerRoutes(app) {
   app.use('/api/check-in', checkInRoutes);
   app.use('/api/shared', sharedRoutes);
   app.use('/api/cron', cronRoutes);
+  app.use('/api/admin', adminRoutes);
   app.get('/api/config', (req, res) =>
     res.json({ devTools: config.devTools, maxUploadMb: config.maxUploadMb }),
   );
