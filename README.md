@@ -6,6 +6,15 @@ and the system releases each item to the right person **only if the owner stops 
 
 > Software Engineering & Project Management (SEPM) project.
 
+**🔗 Live demo: [digital-legacy-manager-iota.vercel.app](https://digital-legacy-manager-iota.vercel.app)**
+
+| Demo role | Email | Password |
+|---|---|---|
+| Owner (Ramesh Kumar) | `ramesh@example.com` | `Demo@1234` |
+| Nominee (his daughter Priya) | `priya@example.com` | `Demo@1234` |
+
+Hosted on Vercel (Singapore region) with a Neon PostgreSQL database. Demo data is reset on every deploy.
+
 ---
 
 ## Why
