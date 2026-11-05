@@ -19,5 +19,6 @@ export function useApi(path) {
     load();
   }, [load]);
 
-  return { ...state, reload: load, setData: (data) => setState((s) => ({ ...s, data })) };
+  const setData = useCallback((data) => setState((s) => ({ ...s, data })), []);
+  return { ...state, reload: load, setData };
 }

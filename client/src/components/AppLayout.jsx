@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { House, Wallet, FileText, Users, Mail, Gift, History, Settings, LogOut, Menu, X, Inbox } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { api } from '../lib/api.js';
+import { usePolling } from '../lib/useNow.js';
 import { AccessibilityBar } from './AccessibilityBar.jsx';
 import { Logo } from './Logo.jsx';
 import { StatusBanner } from './StatusBanner.jsx';
@@ -36,7 +38,7 @@ function NavItems({ devTools }) {
     <nav aria-label="Main menu" className="space-y-6">
       {NAV_GROUPS.map((group) => (
         <div key={group.label}>
-          <p className="mb-2 px-3 text-xs font-bold uppercase tracking-[0.18em] text-white/45">{group.label}</p>
+          <p className="mb-2 px-3 text-xs font-bold uppercase tracking-[0.18em] text-white/65">{group.label}</p>
           <ul className="space-y-1">
             {group.items.map(({ to, label, icon: Icon, end }) => (
               <li key={to}>
@@ -44,15 +46,14 @@ function NavItems({ devTools }) {
                   to={to}
                   end={end}
                   className={({ isActive }) =>
-                    `group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.98rem] font-bold no-underline transition-colors ${
-                      isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'
+                    `group relative flex min-h-10 items-center gap-3 rounded-lg px-3 text-[0.95rem] font-bold no-underline transition-colors ${
+                      isActive ? 'bg-ice text-midnight' : 'text-white/80 hover:bg-white/10 hover:text-white'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      {isActive && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-gold" aria-hidden />}
-                      <Icon className={`size-5 shrink-0 ${isActive ? 'text-gold' : ''}`} aria-hidden />
+                      <Icon className="size-[18px] shrink-0" aria-hidden />
                       {label}
                     </>
                   )}
@@ -65,7 +66,7 @@ function NavItems({ devTools }) {
       {devTools && (
         <NavLink
           to="/dev/mailbox"
-          className="flex min-h-10 items-center gap-3 rounded-xl border border-dashed border-white/20 px-3 text-sm font-bold text-white/60 no-underline hover:text-white"
+          className="flex min-h-10 items-center gap-3 rounded-xl border border-dashed border-white/20 px-3 text-sm font-bold text-white/75 no-underline hover:text-white"
         >
           <Inbox className="size-4 shrink-0" aria-hidden /> Demo mailbox
         </NavLink>
@@ -81,7 +82,7 @@ function UserCard({ user, onSignOut }) {
         <Avatar name={user?.name} />
         <div className="min-w-0">
           <p className="truncate font-bold text-white">{user?.name}</p>
-          <p className="truncate text-sm text-white/55">{user?.email}</p>
+          <p className="truncate text-sm text-white/70">{user?.email}</p>
         </div>
       </div>
       <button
@@ -96,12 +97,18 @@ function UserCard({ user, onSignOut }) {
 }
 
 export function AppLayout() {
-  const { user, logout, devTools } = useAuth();
+  const { user, setUser, logout, devTools } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
+
+  // In live demo mode, refresh the owner's status every 3 seconds so the release appears on screen live.
+  const refreshMe = useCallback(() => {
+    api('/auth/me').then((r) => setUser(r.user)).catch(() => {});
+  }, [setUser]);
+  usePolling(refreshMe, 3000, Boolean(user?.liveDemo));
 
   const signOut = async () => {
     await logout();
@@ -109,15 +116,15 @@ export function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen lg:pl-72">
+    <div className="min-h-screen lg:pl-64">
       <a href="#main" className="skip-link">Skip to main content</a>
 
       {/* Desktop sidebar */}
-      <aside className="bg-hero grain fixed inset-y-0 left-0 z-30 hidden w-72 flex-col overflow-y-auto px-4 py-6 lg:flex">
+      <aside className="bg-hero grain fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-y-auto px-4 py-6 lg:flex">
         <div className="relative px-2">
           <Logo to="/app" tone="light" />
         </div>
-        <div className="relative mt-9 flex-1">
+        <div className="relative mt-8 flex-1">
           <NavItems devTools={devTools} />
         </div>
         <div className="relative mt-6">
@@ -140,7 +147,7 @@ export function AppLayout() {
         </button>
       </header>
       {menuOpen && (
-        <div id="mobile-menu" className="bg-navy-950 space-y-6 px-4 pb-6 pt-2 lg:hidden">
+        <div id="mobile-menu" className="bg-midnight-deep space-y-6 px-4 pb-6 pt-2 lg:hidden">
           <AccessibilityBar tone="light" />
           <NavItems devTools={devTools} />
           <UserCard user={user} onSignOut={signOut} />

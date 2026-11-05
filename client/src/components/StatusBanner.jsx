@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { api } from '../lib/api.js';
 import { formatDate } from '../lib/format.js';
+import { secondsUntil, useNow } from '../lib/useNow.js';
 import { Button } from './ui.jsx';
 
 /** Shown on every page when the owner needs to check in. */
@@ -11,6 +12,7 @@ export function StatusBanner() {
   const { user, setUser } = useAuth();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
+  const now = useNow(1000, Boolean(user?.liveDemo));
   if (!user || user.legacyStatus === 'ACTIVE') return null;
 
   const checkIn = async () => {
@@ -28,8 +30,12 @@ export function StatusBanner() {
 
   const urgent = user.legacyStatus !== 'REMINDED';
   const message = {
-    REMINDED: `Your check-in is due on ${formatDate(user.nextCheckInDue)}. Please let us know you are well.`,
-    GRACE: `We have not heard from you. Unless you check in, your trusted people will receive access on ${formatDate(user.graceEndsAt)}.`,
+    REMINDED: user.liveDemo
+      ? `Live demo: check-in due in ${secondsUntil(user.nextCheckInDue, now)} seconds. Please let us know you are well.`
+      : `Your check-in is due on ${formatDate(user.nextCheckInDue)}. Please let us know you are well.`,
+    GRACE: user.liveDemo
+      ? `Live demo: we have not heard from you. Your trusted people receive access in ${secondsUntil(user.graceEndsAt, now)} seconds unless you check in.`
+      : `We have not heard from you. Unless you check in, your trusted people will receive access on ${formatDate(user.graceEndsAt)}.`,
     RELEASED: 'Your vault was released to your trusted people. Press the button to lock it again.',
   }[user.legacyStatus];
 

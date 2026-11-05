@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, KeyRound, LogOut, Trash2, FlaskConical, Inbox } from 'lucide-react';
+import { Check, KeyRound, LogOut, Trash2, FlaskConical, Inbox, Play, Square, Radio } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { TEXT_SIZES, usePrefs } from '../../context/PrefsContext.jsx';
 import { api } from '../../lib/api.js';
 import { formatDate } from '../../lib/format.js';
+import { secondsUntil, useNow } from '../../lib/useNow.js';
 import { Alert, Button, Card, PageHeader, SelectField, TextField } from '../../components/ui.jsx';
 import { PasswordField, PasswordRules, PASSWORD_RULES } from '../../components/PasswordField.jsx';
 import { ConfirmDialog, Dialog } from '../../components/Dialog.jsx';
@@ -34,10 +35,109 @@ function useSubmit(fn) {
 function Section({ title, intro, children }) {
   return (
     <Card>
-      <h2 className="font-serif text-2xl font-semibold text-navy-900">{title}</h2>
+      <h2 className="font-serif text-2xl font-semibold text-midnight">{title}</h2>
       {intro && <p className="mt-1 text-lg text-muted">{intro}</p>}
       <div className="mt-6">{children}</div>
     </Card>
+  );
+}
+
+const LIVE_PHASE = {
+  ACTIVE: 'Active — counting down to the next check-in',
+  REMINDED: 'Reminder sent — check-in due very soon',
+  GRACE: 'Waiting period — the plan will be released unless you check in',
+  RELEASED: 'Released — your trusted people can now open what you left',
+};
+
+/** Start / stop live demo mode and watch the countdown. */
+function LiveDemoPanel({ user, setUser }) {
+  const toast = useToast();
+  const [form, setForm] = useState({
+    intervalSeconds: user.demoIntervalSeconds || 30,
+    graceSeconds: user.demoGraceSeconds || 30,
+  });
+  const [busy, setBusy] = useState(false);
+  const now = useNow(1000, user.liveDemo);
+
+  const start = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const res = await api('/dev/live-demo', {
+        method: 'POST',
+        body: { intervalSeconds: Number(form.intervalSeconds), graceSeconds: Number(form.graceSeconds) },
+      });
+      setUser(res.user);
+      toast(`Live demo started: check in every ${form.intervalSeconds} seconds.`);
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const stop = async () => {
+    setBusy(true);
+    try {
+      const res = await api('/dev/live-demo', { method: 'DELETE' });
+      setUser(res.user);
+      toast('Live demo stopped. Back to the normal schedule.');
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const target = user.legacyStatus === 'GRACE' ? user.graceEndsAt : user.nextCheckInDue;
+  return (
+    <div className="space-y-5">
+      {user.liveDemo && (
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-deep/20 bg-ice-soft p-4" role="status">
+          <div>
+            <p className="flex items-center gap-2 font-bold text-midnight">
+              <Radio className="size-4" aria-hidden /> Live demo is running
+            </p>
+            <p className="text-muted">{LIVE_PHASE[user.legacyStatus]}</p>
+          </div>
+          {user.legacyStatus !== 'RELEASED' && (
+            <p className="font-serif text-3xl font-semibold text-midnight">
+              {secondsUntil(target, now)}<span className="ml-1 font-sans text-base text-muted">s</span>
+            </p>
+          )}
+        </div>
+      )}
+      <form onSubmit={start} className="grid gap-4 sm:grid-cols-2">
+        <TextField
+          label="Check in every (seconds)"
+          type="number"
+          min={10}
+          max={3600}
+          value={form.intervalSeconds}
+          onChange={(e) => setForm({ ...form, intervalSeconds: e.target.value })}
+        />
+        <TextField
+          label="Then wait before release (seconds)"
+          type="number"
+          min={10}
+          max={3600}
+          value={form.graceSeconds}
+          onChange={(e) => setForm({ ...form, graceSeconds: e.target.value })}
+        />
+        <div className="flex flex-wrap gap-3 sm:col-span-2">
+          <Button type="submit" icon={Play} loading={busy}>{user.liveDemo ? 'Restart with these times' : 'Start live demo'}</Button>
+          {user.liveDemo && <Button variant="secondary" icon={Square} onClick={stop} disabled={busy}>Stop live demo</Button>}
+          <Button variant="quiet" icon={Inbox} to="/dev/mailbox">Open demo mailbox</Button>
+        </div>
+      </form>
+      <ol className="list-decimal space-y-1 pl-5 text-muted">
+        <li>Press <strong className="text-ink">Start live demo</strong> — this counts as a check-in.</li>
+        <li>Go to <strong className="text-ink">Home</strong> and watch the countdown. Do not press "I am well".</li>
+        <li>When it reaches zero the waiting period starts, and when that ends the plan is released.</li>
+        <li>In another browser (or incognito window) log in as the nominee and open <strong className="text-ink">Left for me</strong> — it updates by itself.</li>
+        <li>Press <strong className="text-ink">I am well</strong> at any point to lock everything again.</li>
+      </ol>
+    </div>
   );
 }
 
@@ -158,7 +258,13 @@ export default function Settings() {
         </Section>
 
         {devTools && (
-          <Section title="Demonstration tools" intro="Only available in development. Pretend time has passed to see reminders and the release process.">
+          <Section title="Live demo mode" intro="Count check-ins in seconds instead of days, so you can show a missed check-in and the handover happening live.">
+            <LiveDemoPanel user={user} setUser={setUser} />
+          </Section>
+        )}
+
+        {devTools && !user.liveDemo && (
+          <Section title="Jump ahead in time" intro="Pretend days have passed for your own account (normal schedule).">
             <div className="flex flex-wrap gap-3">
               <Button variant="secondary" icon={FlaskConical} onClick={() => timeTravel(28)}>+28 days (reminder)</Button>
               <Button variant="secondary" icon={FlaskConical} onClick={() => timeTravel(user.checkInIntervalDays + 1)}>Miss the check-in</Button>

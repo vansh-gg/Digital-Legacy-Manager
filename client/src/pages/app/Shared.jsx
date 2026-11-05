@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Gift, Lock, Hourglass, HeartHandshake, Flag, FolderOpen } from 'lucide-react';
 import { useToast } from '../../context/ToastContext.jsx';
 import { api } from '../../lib/api.js';
 import { useApi } from '../../lib/useApi.js';
+import { secondsUntil, useNow, usePolling } from '../../lib/useNow.js';
 import { firstName, formatDate } from '../../lib/format.js';
 import { Alert, Badge, Button, Card, EmptyState, ErrorState, Loading, PageHeader, TextField } from '../../components/ui.jsx';
 import { Dialog } from '../../components/Dialog.jsx';
@@ -52,7 +53,14 @@ function ReportDialog({ vault, onClose, onDone }) {
 }
 
 export default function Shared() {
-  const { data, loading, error, reload } = useApi('/shared');
+  const { data, loading, error, reload, setData } = useApi('/shared');
+  const live = Boolean(data?.vaults?.some((v) => v.liveDemo && v.ownerStatus !== 'RELEASED'));
+  // While a live-demo owner is counting down, refresh quietly every 3 seconds.
+  const refresh = useCallback(() => {
+    api('/shared').then((d) => setData(d)).catch(() => {});
+  }, [setData]);
+  usePolling(refresh, 3000, live);
+  const now = useNow(1000, live);
   const [reporting, setReporting] = useState(null);
 
   if (loading) return <Loading />;
@@ -75,7 +83,7 @@ export default function Shared() {
                 <Card as="article">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h2 className="font-serif text-2xl font-semibold text-navy-900">{v.ownerName}</h2>
+                      <h2 className="font-serif text-2xl font-semibold text-midnight">{v.ownerName}</h2>
                       <p className="text-lg text-muted">You are listed as their {v.relationship.toLowerCase()}</p>
                     </div>
                     <Badge tone={s.tone}><Icon className="mr-1.5 inline size-5" aria-hidden />{s.label}</Badge>
@@ -90,8 +98,12 @@ export default function Shared() {
                   )}
                   {v.ownerStatus === 'GRACE' && (
                     <Alert tone="warn" className="mt-4">
-                      We are trying to reach {firstName(v.ownerName)}. If they do not respond, the items will become available on{' '}
-                      <strong>{formatDate(v.graceEndsAt)}</strong>. If you can, please check on them.
+                      We are trying to reach {firstName(v.ownerName)}. If they do not respond, the items will become available{' '}
+                      {v.liveDemo ? (
+                        <>in <strong>{secondsUntil(v.graceEndsAt, now)} seconds</strong> (live demo).</>
+                      ) : (
+                        <>on <strong>{formatDate(v.graceEndsAt)}</strong>. If you can, please check on them.</>
+                      )}
                     </Alert>
                   )}
                   <div className="mt-5 flex flex-wrap gap-3">
