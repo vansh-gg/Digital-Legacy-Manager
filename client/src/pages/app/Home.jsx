@@ -125,6 +125,67 @@ function CheckInHero({ user, onCheckedIn }) {
   );
 }
 
+/**
+ * Where the plan stands, in order: last check-in, (private) reminder, next due
+ * date, the waiting period and when a release would happen or happened.
+ */
+function PlanTimeline({ user, lastReminderAt }) {
+  const live = user.liveDemo;
+  const when = (d) => (live ? formatDateTime(d) : formatDate(d));
+  const graceText = live ? `${user.demoGraceSeconds} seconds` : `${user.gracePeriodDays} days`;
+  const due = new Date(user.nextCheckInDue);
+  const wouldRelease = new Date(due.getTime() + (live ? user.demoGraceSeconds * 1000 : user.gracePeriodDays * DAY));
+  const st = user.legacyStatus;
+
+  const steps = [
+    { key: 'last', label: 'Last check-in', value: when(user.lastCheckInAt), state: 'done' },
+    lastReminderAt && (st === 'REMINDED' || st === 'GRACE') && {
+      key: 'reminder', label: 'Reminder sent to you', value: when(lastReminderAt), note: 'Only you can see this.', state: 'done',
+    },
+    st === 'ACTIVE' || st === 'REMINDED'
+      ? { key: 'due', label: 'Next check-in due', value: when(user.nextCheckInDue), state: 'current' }
+      : { key: 'due', label: 'Check-in was due', value: when(user.nextCheckInDue), state: 'done' },
+    st === 'GRACE'
+      ? { key: 'grace', label: 'Waiting period ends', value: when(user.graceEndsAt), note: 'Check in before then to stop the release.', state: 'warn' }
+      : st === 'RELEASED'
+        ? null
+        : { key: 'grace', label: 'If you miss it', value: `${graceText} waiting period`, note: 'We keep reminding you and your trusted people.', state: 'future' },
+    st === 'RELEASED'
+      ? { key: 'release', label: 'Released to trusted people', value: when(user.statusChangedAt), note: 'Check in to lock everything again.', state: 'warn' }
+      : {
+          key: 'release',
+          label: st === 'GRACE' ? 'Release on' : 'Earliest release',
+          value: when(st === 'GRACE' ? user.graceEndsAt : wouldRelease),
+          note: st === 'GRACE' ? undefined : 'Only if you do not check in.',
+          state: st === 'GRACE' ? 'warn' : 'future',
+        },
+  ].filter(Boolean);
+
+  const dot = {
+    done: 'border-deep bg-deep',
+    current: 'border-deep bg-white ring-4 ring-ice',
+    warn: 'border-danger bg-danger-soft',
+    future: 'border-[#8796aa] bg-white',
+  };
+
+  return (
+    <Card>
+      <h2 className="font-serif text-xl font-semibold text-midnight">Plan timeline</h2>
+      <ol className="mt-5 grid gap-5 sm:grid-cols-2 lg:flex lg:gap-0">
+        {steps.map((s, i) => (
+          <li key={s.key} className="relative lg:flex-1 lg:pr-4">
+            {i < steps.length - 1 && <span className="absolute left-[9px] top-6 hidden h-px w-[calc(100%-18px)] translate-x-[18px] bg-line lg:block" aria-hidden />}
+            <span className={`relative block size-[18px] rounded-full border-[3px] ${dot[s.state]}`} aria-hidden />
+            <p className="mt-2 text-sm font-bold uppercase tracking-wider text-muted">{s.label}</p>
+            <p className={`font-bold ${s.state === 'warn' ? 'text-danger' : 'text-ink'}`}>{s.value}</p>
+            {s.note && <p className="text-sm text-muted">{s.note}</p>}
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}
+
 const VAULT_STATUS = {
   RELEASED: { label: 'Available now', tone: 'info' },
   GRACE: { label: 'Not responding', tone: 'warn' },
@@ -237,7 +298,7 @@ function ReadinessCard({ steps, unassigned }) {
       {unassigned > 0 && (
         <p className="mt-4 rounded-xl bg-warn-soft px-4 py-3 text-warn">
           <strong>{unassigned}</strong> item{unassigned > 1 ? 's are' : ' is'} not yet assigned to anyone.{' '}
-          <Link to="/app/assets" className="font-bold text-warn">Choose who receives {unassigned > 1 ? 'them' : 'it'} →</Link>
+          <Link to="/app/assets?show=unassigned" className="font-bold text-warn">Show {unassigned > 1 ? 'them' : 'it'} and choose who receives {unassigned > 1 ? 'them' : 'it'} →</Link>
         </p>
       )}
     </Card>
@@ -318,6 +379,7 @@ export default function Home() {
     <div className="space-y-6">
       {leftForMe.length > 0 && <LeftForMePanel vaults={leftForMe} now={now} />}
       <CheckInHero user={user} onCheckedIn={onCheckedIn} />
+      <PlanTimeline user={user} lastReminderAt={data.timeline?.lastReminderAt} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {TILES.map(({ key, label, to, icon, tone }) => (

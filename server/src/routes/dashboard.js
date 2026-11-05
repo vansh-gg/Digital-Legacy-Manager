@@ -24,6 +24,12 @@ router.get('/dashboard', async (req, res) => {
     vaultsFor(ownerId),
     prisma.auditLog.findMany({ where: { userId: ownerId }, orderBy: { createdAt: 'desc' }, take: 5 }),
   ]);
+  // Reminder history is private to the owner: only this owner-only endpoint returns it.
+  const lastReminder = await prisma.auditLog.findFirst({
+    where: { userId: ownerId, action: 'REMINDER_SENT', createdAt: { gte: req.user.lastCheckInAt } },
+    orderBy: { createdAt: 'desc' },
+    select: { createdAt: true },
+  });
 
   const sharedWithMe = leftForMe.length;
   const nominees = people.length;
@@ -36,7 +42,7 @@ router.get('/dashboard', async (req, res) => {
     { key: 'asset', label: 'Add your first account or asset', done: assets > 0, to: '/app/assets' },
     { key: 'nominee', label: 'Choose a trusted person', done: nominees - declinedNominees > 0, to: '/app/nominees' },
     { key: 'accepted', label: 'Your trusted person accepts the invitation', done: acceptedNominees > 0, to: '/app/nominees' },
-    { key: 'assigned', label: 'Decide who receives each item', done: assets > 0 && unassignedAssets === 0, to: '/app/assets' },
+    { key: 'assigned', label: 'Decide who receives each item', done: assets > 0 && unassignedAssets === 0, to: unassignedAssets > 0 ? '/app/assets?show=unassigned' : '/app/assets' },
     { key: 'document', label: 'Upload an important document (will, property papers)', done: documents > 0, to: '/app/documents' },
     { key: 'letter', label: 'Write a personal letter', done: letters > 0, to: '/app/letters' },
   ];
@@ -46,6 +52,7 @@ router.get('/dashboard', async (req, res) => {
     counts: { assets, unassignedAssets, documents, nominees, acceptedNominees, pendingNominees, declinedNominees, letters, sharedWithMe },
     people,
     leftForMe,
+    timeline: { lastReminderAt: lastReminder?.createdAt ?? null },
     steps,
     recentActivity: recent,
   });

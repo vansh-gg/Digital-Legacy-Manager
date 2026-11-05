@@ -63,3 +63,33 @@ describe('Nominees & invitations', () => {
     assert.equal((await client().get(`/api/invites/${first}`)).status, 400);
   });
 });
+
+describe('Owner dashboard & previews', () => {
+  test('TC-NOM-06 dashboard count and trusted-people list come from the same data', async () => {
+    const { c } = await registeredClient();
+    await c.post('/api/nominees').send({ name: 'Asha', email: uniqueEmail('asha'), relationship: 'Daughter' });
+    await c.post('/api/nominees').send({ name: 'Bala', email: uniqueEmail('bala'), relationship: 'Son' });
+    const res = await c.get('/api/dashboard');
+    assert.equal(res.body.counts.nominees, 2);
+    assert.equal(res.body.people.length, 2);
+    assert.equal(res.body.counts.pendingNominees, 2);
+    assert.deepEqual(res.body.people.map((p) => p.status), ['INVITED', 'INVITED']);
+  });
+
+  test('TC-NOM-07 owner previews what one nominee will receive, and only their own nominees', async () => {
+    const { c } = await registeredClient();
+    const a = (await c.post('/api/nominees').send({ name: 'Asha', email: uniqueEmail('asha'), relationship: 'Daughter' })).body.nominee;
+    const b = (await c.post('/api/nominees').send({ name: 'Bala', email: uniqueEmail('bala'), relationship: 'Son' })).body.nominee;
+    await c.post('/api/assets').send({ category: 'BANK', title: 'For Asha', nomineeIds: [a.id] });
+    await c.post('/api/assets').send({ category: 'BANK', title: 'For Bala', nomineeIds: [b.id] });
+    await c.post('/api/letters').send({ nomineeId: a.id, subject: 'Dear Asha', body: 'Hello' });
+
+    const preview = await c.get(`/api/nominees/${a.id}/preview`);
+    assert.equal(preview.status, 200);
+    assert.deepEqual(preview.body.assets.map((x) => x.title), ['For Asha']);
+    assert.deepEqual(preview.body.letters.map((x) => x.subject), ['Dear Asha']);
+
+    const stranger = await registeredClient();
+    assert.equal((await stranger.c.get(`/api/nominees/${a.id}/preview`)).status, 404);
+  });
+});

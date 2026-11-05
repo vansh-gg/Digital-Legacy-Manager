@@ -88,6 +88,18 @@ router.put('/:id', async (req, res) => {
   res.json({ nominee: toDto(nominee) });
 });
 
+/** Owner-side preview: exactly what this person would receive if the plan is released. */
+router.get('/:id/preview', async (req, res) => {
+  const nominee = await findOwned('nominee', req.user.id, req.params.id);
+  const shared = { ownerId: req.user.id, shares: { some: { nomineeId: nominee.id } } };
+  const [assets, documents, letters] = await Promise.all([
+    prisma.asset.findMany({ where: shared, select: { id: true, title: true, category: true }, orderBy: { createdAt: 'asc' } }),
+    prisma.document.findMany({ where: shared, select: { id: true, title: true, category: true }, orderBy: { createdAt: 'asc' } }),
+    prisma.letter.findMany({ where: { ownerId: req.user.id, nomineeId: nominee.id }, select: { id: true, subject: true } }),
+  ]);
+  res.json({ nominee: toDto(nominee), assets, documents, letters });
+});
+
 router.post('/:id/resend', async (req, res) => {
   const nominee = await findOwned('nominee', req.user.id, req.params.id);
   if (nominee.status === 'ACCEPTED') throw badRequest(`${nominee.name} has already accepted.`);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Lock, Wallet, AlertTriangle } from 'lucide-react';
 import { useToast } from '../../context/ToastContext.jsx';
 import { api } from '../../lib/api.js';
@@ -16,12 +17,17 @@ export default function Assets() {
   const [revealing, setRevealing] = useState(null);
   const [revealed, setRevealed] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [params, setParams] = useSearchParams();
+  const onlyUnassigned = params.get('show') === 'unassigned';
 
   if (assets.loading || nominees.loading) return <Loading />;
   if (assets.error) return <ErrorState error={assets.error} onRetry={assets.reload} />;
 
   const nameOf = Object.fromEntries((nominees.data?.nominees || []).map((n) => [n.id, n.name]));
-  const list = assets.data.assets;
+  const all = assets.data.assets;
+  const unassignedCount = all.filter((a) => a.nomineeIds.length === 0).length;
+  const list = onlyUnassigned ? all.filter((a) => a.nomineeIds.length === 0) : all;
+  const toggleUnassigned = () => setParams(onlyUnassigned ? {} : { show: 'unassigned' }, { replace: true });
 
   const reveal = async (password) => {
     const res = await api(`/assets/${revealing.id}/reveal`, { method: 'POST', body: { password } });
@@ -48,7 +54,21 @@ export default function Assets() {
         action={<Button to="/app/assets/new" icon={Plus} size="lg">Add an item</Button>}
       />
 
-      {list.length === 0 ? (
+      {all.length > 0 && (unassignedCount > 0 || onlyUnassigned) && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl bg-warn-soft px-4 py-3">
+          <AlertTriangle className="size-5 text-warn" aria-hidden />
+          <p className="flex-1 font-bold text-warn">
+            {unassignedCount === 0
+              ? 'Every item now has someone to receive it.'
+              : `${unassignedCount} item${unassignedCount === 1 ? ' is' : 's are'} not assigned to anyone yet.`}
+          </p>
+          <Button size="sm" variant="secondary" onClick={toggleUnassigned} aria-pressed={onlyUnassigned}>
+            {onlyUnassigned ? `Show all ${all.length} items` : 'Show only these'}
+          </Button>
+        </div>
+      )}
+
+      {all.length === 0 ? (
         <EmptyState
           icon={Wallet}
           title="Nothing added yet"
@@ -84,6 +104,7 @@ export default function Assets() {
                     ) : (
                       <p className="flex items-center gap-2 font-bold text-warn">
                         <AlertTriangle className="size-5" aria-hidden /> Not assigned to anyone yet
+                        <Link to={`/app/assets/${a.id}/edit`} className="ml-1 text-base text-warn">Choose who →</Link>
                       </p>
                     )}
                     {a.instructions && (
