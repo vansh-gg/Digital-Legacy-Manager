@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AppLayout } from './components/AppLayout.jsx';
 import { PublicLayout } from './components/PublicLayout.jsx';
 import { RequireAdmin, RequireAuth } from './components/RequireAuth.jsx';
@@ -38,56 +39,59 @@ function useFocusOnNavigate() {
 export default function App() {
   useFocusOnNavigate();
   return (
-    <Routes>
-      <Route element={<PublicLayout />}>
-        <Route index element={<Landing />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route path="forgot-password" element={<ForgotPassword />} />
-        <Route path="reset-password/:token" element={<ResetPassword />} />
-        <Route path="check-in/:token" element={<CheckInLink />} />
-        <Route path="invite/:token" element={<Invite />} />
-        <Route path="dev/mailbox" element={<Mailbox />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
+    <>
+      <Routes>
+        <Route element={<PublicLayout />}>
+          <Route index element={<Landing />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password/:token" element={<ResetPassword />} />
+          <Route path="check-in/:token" element={<CheckInLink />} />
+          <Route path="invite/:token" element={<Invite />} />
+          <Route path="dev/mailbox" element={<Mailbox />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
 
-      <Route
-        path="app"
-        element={
-          <RequireAuth>
-            <AppLayout />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<Home />} />
-        <Route path="assets" element={<Assets />} />
-        <Route path="assets/new" element={<AssetForm />} />
-        <Route path="assets/:id/edit" element={<AssetForm />} />
-        <Route path="nominees" element={<Nominees />} />
-        <Route path="nominees/new" element={<NomineeForm />} />
-        <Route path="nominees/:id/edit" element={<NomineeForm />} />
-        <Route path="documents" element={<Documents />} />
-        <Route path="letters" element={<Letters />} />
-        <Route path="letters/new" element={<LetterForm />} />
-        <Route path="letters/:id/edit" element={<LetterForm />} />
-        <Route path="shared" element={<Shared />} />
-        <Route path="shared/:nomineeId" element={<SharedVault />} />
-        <Route path="activity" element={<Activity />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-
-      <Route
-        path="admin"
-        element={
-          <RequireAuth>
-            <RequireAdmin>
+        <Route
+          path="app"
+          element={
+            <RequireAuth>
               <AppLayout />
-            </RequireAdmin>
-          </RequireAuth>
-        }
-      >
-        <Route index element={<Admin />} />
-      </Route>
-    </Routes>
+            </RequireAuth>
+          }
+        >
+          <Route index element={<Home />} />
+          <Route path="assets" element={<Assets />} />
+          <Route path="assets/new" element={<AssetForm />} />
+          <Route path="assets/:id/edit" element={<AssetForm />} />
+          <Route path="nominees" element={<Nominees />} />
+          <Route path="nominees/new" element={<NomineeForm />} />
+          <Route path="nominees/:id/edit" element={<NomineeForm />} />
+          <Route path="documents" element={<Documents />} />
+          <Route path="letters" element={<Letters />} />
+          <Route path="letters/new" element={<LetterForm />} />
+          <Route path="letters/:id/edit" element={<LetterForm />} />
+          <Route path="shared" element={<Shared />} />
+          <Route path="shared/:nomineeId" element={<SharedVault />} />
+          <Route path="activity" element={<Activity />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+
+        <Route
+          path="admin"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AppLayout />
+              </RequireAdmin>
+            </RequireAuth>
+          }
+        >
+          <Route index element={<Admin />} />
+        </Route>
+      </Routes>
+      <Analytics />
+    </>
   );
 }
