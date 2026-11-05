@@ -26,6 +26,9 @@
 | Shoulder surfing | Secrets are hidden until the password is re-entered, and hidden again when the dialog closes |
 | Demo tools in production | Off by default in production. If enabled for a demo, the mailbox only shows the signed-in user's own emails |
 | Public demo credentials | Demo accounts use a private `DEMO_PASSWORD` from the environment; no password appears in the code, README or login page |
+| Over-powerful administrators | The `ADMIN` role is checked on the server for every `/api/admin` route. Admin responses contain status, dates and action names only: no item names, secrets, documents, letters or recipients. There are no admin release, lock or check-in endpoints |
+| Demo reset deleting real data | Reset only deletes accounts flagged `isDemo` with one of the fixed demo addresses, and refuses if a demo address belongs to a real account. Demo addresses cannot be registered |
+| Read-only preview misuse | Allowed only for demo accounts with the correct password. The session carries a read-only flag, and the server rejects every non-GET request |
 | Forged cron calls | `/api/cron/sweep` requires the `CRON_SECRET` bearer token (constant-time compare); otherwise it returns 404 |
 
 ## Key management

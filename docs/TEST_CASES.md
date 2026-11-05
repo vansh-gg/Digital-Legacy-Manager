@@ -1,7 +1,7 @@
 # Test Cases
 
 All cases below are automated (`npm test`) and run against an isolated test database.
-**Result: 38 / 38 passing.**
+**Result: 47 / 47 passing.**
 
 | ID | Module | Description | Expected result |
 |---|---|---|---|
@@ -43,6 +43,15 @@ All cases below are automated (`npm test`) and run against an isolated test data
 | TC-LIVE-01 | Live demo | Seconds-based check-in missed | GRACE on the owner's next request, RELEASED on the nominee's next request — no cron needed |
 | TC-LIVE-02 | Reliability | Three simultaneous evaluations | Exactly one set of emails (conditional state updates) |
 | TC-LIVE-03 | Live demo | Stop live demo / invalid timings | Back to ACTIVE on the normal schedule; under 10 seconds rejected |
+| TC-NOM-06 | Dashboard | Trusted-people count and list | Same data source, pending and accepted statuses shown |
+| TC-NOM-07 | Nominees | Owner previews what one nominee receives | Only that nominee's items; another owner gets 404 |
+| TC-ADM-01 | Security | Admin endpoints as anonymous / regular user | 401 / 403 on every endpoint |
+| TC-ADM-02 | Admin | Account list and timeline | Status and dates shown; no item names, secrets or nominees leaked |
+| TC-ADM-03 | Admin | Search and status filter | Matches by name or email; filter returns only that status |
+| TC-DEMO-01 | Demo | Read-only preview of Sunita | Stays REMINDED; check-in and edits return 403; real accounts cannot use preview |
+| TC-DEMO-02 | Demo | Normal logins, then reset | Logins check in; reset restores all six states; password unchanged |
+| TC-DEMO-03 | Demo | Reset with a real account present | Real accounts, vaults and history unchanged |
+| TC-DEMO-04 | Security | Register a demo email address | 409 |
 
 ## Manual / UI test checklist
 
@@ -56,3 +65,6 @@ All cases below are automated (`npm test`) and run against an isolated test data
 | UI-06 | Release demo: owner misses check-in, nominee opens letter and items | Pass |
 | UI-07 | Live demo: countdown ticks every second; nominee page updates by itself on release | Pass |
 | UI-08 | All demo scenarios (active, reminded, waiting x2, released, live) display correctly | Pass |
+| UI-09 | Vikram (nominee of two owners) sees Left for me first, with "1 ready", on desktop and phone | Pass |
+| UI-10 | Admin logs in, lands on /admin, searches "gopal", opens the timeline, resets the demo | Pass |
+| UI-11 | Harish live demo: Kavya's home screen goes Private → Not responding → Open; Harish checks in and Kavya is locked out | Pass |

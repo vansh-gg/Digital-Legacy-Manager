@@ -31,6 +31,7 @@ It is **not** a legal will.
 |---|---|
 | Elderly owner | Aged 60+, low-to-moderate digital literacy, may have reduced vision |
 | Nominee | Adult family member, average digital literacy, likely to use the app at a stressful time |
+| Administrator | Runs the service or the classroom demo. Sees account status and activity, never vault contents |
 
 ### 2.2 Operating environment
 Modern browsers (Chrome, Edge, Firefox, Safari) on Windows, macOS, Android and iOS. Node.js 20+ server.
@@ -63,6 +64,12 @@ Modern browsers (Chrome, Edge, Firefox, Safari) on Windows, macOS, Android and i
 | FR-18 | The system shall keep an activity log of security-relevant events | Must |
 | FR-19 | The user shall be able to change their text size, and pages shall be readable aloud | Should |
 | FR-20 | The user shall be able to delete their account and all of its data | Must |
+| FR-21 | A user who is also a nominee shall see a prominent "Left for me" section on their home screen, showing which items are available | Must |
+| FR-22 | The owner's home screen shall show a timeline: last check-in, reminder (owner only), next due date, waiting period and release date | Should |
+| FR-23 | An owner shall be able to preview exactly what each nominee will receive | Should |
+| FR-24 | Administrators (role checked on the server) shall see account status, a searchable account list and an activity timeline, but no vault contents and no release controls | Must |
+| FR-25 | An administrator shall be able to reset the demo scenarios without affecting any other account | Should |
+| FR-26 | Demo accounts shall offer a read-only preview that records no check-in and allows no changes | Should |
 
 ## 4. Non-functional requirements
 

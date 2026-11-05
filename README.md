@@ -64,7 +64,7 @@ Requires **Node.js 20.12+**.
 ```bash
 npm install        # installs server + client
 npm run setup      # creates server/.env with random secrets and the database
-npm run seed       # optional: 6 demo scenarios (password = DEMO_PASSWORD in server/.env)
+npm run seed       # optional: 6 demo scenarios + admin@example.com (password = DEMO_PASSWORD in server/.env)
 npm run dev        # API on :4000, web app on http://localhost:5173
 ```
 
@@ -81,6 +81,31 @@ password in `DEMO_PASSWORD` (generated privately by `npm run setup`, never store
 | 4 | Meera Nair | **Waiting period**: her daughter reported she may have passed away |
 | 5 | Gopal Rao | **Released**: son and daughter each see only what was left to them; one nominee declined |
 | 6 | Harish Menon | Ready for a **live demo** |
+
+**Showing a scenario without changing it.** Logging in normally counts as a check-in (that is how
+the product works), so it moves Sunita, Mohan, Meera or Gopal back to *Active*. To show an owner as
+they are, tick **Read-only demo preview** on the login page: nothing can be changed and no check-in
+is recorded. To start over, an administrator presses **Reset demo scenarios** on `/admin`.
+
+### Admin area
+
+The seed also creates **admin@example.com** (same `DEMO_PASSWORD`). Log in with it and you land on
+**/admin**, which has:
+
+- account totals by status
+- a searchable, filterable account list
+- a per-account activity timeline
+- recent system activity
+- a one-click demo reset
+
+Administrators never see vault contents (items, secrets, documents, letters, or who receives what)
+and have no release or check-in controls. The server checks the role on every `/api/admin` request.
+
+To make any existing account an administrator (locally, or against Neon by setting `DATABASE_URL`):
+
+```bash
+npm run make-admin -w server -- you@example.com
+```
 
 ### Live demo: show a release happening in real time
 

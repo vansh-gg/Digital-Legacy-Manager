@@ -30,7 +30,15 @@ serverless function (`api/index.mjs`). Data lives in a free **Neon PostgreSQL** 
 | `DEMO_PASSWORD` | Private password for all demo accounts (never put it in the code or README) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Optional real email (e.g. Brevo, or a Gmail app password) |
 
-4. **Redeploy.** During the build, `server/scripts/prepare-db.js` detects Postgres, switches the Prisma
+4. **First administrator:** with `SEED_DEMO=true` the build creates `admin@example.com` (password =
+   `DEMO_PASSWORD`). For a real deployment, register normally and then run this on your computer,
+   with `DATABASE_URL` set to the Neon connection string:
+
+   ```bash
+   npm run make-admin -w server -- you@yourmail.com
+   ```
+
+5. **Redeploy.** During the build, `server/scripts/prepare-db.js` detects Postgres, switches the Prisma
    provider, and creates the tables (`prisma db push`).
 
 Generate the secrets with:
