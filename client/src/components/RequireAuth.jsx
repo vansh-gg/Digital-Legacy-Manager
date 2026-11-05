@@ -10,5 +10,12 @@ export function RequireAuth({ children }) {
   return children;
 }
 
+/** Administrators only. The server checks the role again on every admin request. */
+export function RequireAdmin({ children }) {
+  const { user } = useAuth();
+  if (user?.role !== 'ADMIN') return <Navigate to="/app" replace />;
+  return children;
+}
+
 /** Only allow internal paths as redirect targets (prevents open redirects). */
 export const safeNext = (value, fallback = '/app') => (value && value.startsWith('/') && !value.startsWith('//') ? value : fallback);

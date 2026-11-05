@@ -13,7 +13,19 @@ export function StatusBanner() {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const now = useNow(1000, Boolean(user?.liveDemo));
-  if (!user || user.legacyStatus === 'ACTIVE') return null;
+  if (!user) return null;
+  if (user.readOnly) {
+    return (
+      <div role="status" className="mb-7 rounded-2xl border-2 border-deep bg-ice-soft p-5">
+        <p className="text-lg font-bold text-midnight">Read-only demo preview</p>
+        <p className="mt-1 text-muted">
+          You are viewing {user.name}&rsquo;s account exactly as it is. Nothing here counts as a check-in and nothing can be
+          changed. Log out and log in normally to act as {user.name.split(' ')[0]}.
+        </p>
+      </div>
+    );
+  }
+  if (user.legacyStatus === 'ACTIVE') return null;
 
   const checkIn = async () => {
     setBusy(true);

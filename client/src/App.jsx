@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout.jsx';
 import { PublicLayout } from './components/PublicLayout.jsx';
-import { RequireAuth } from './components/RequireAuth.jsx';
+import { RequireAdmin, RequireAuth } from './components/RequireAuth.jsx';
 import Landing from './pages/Landing.jsx';
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
@@ -24,6 +24,7 @@ import Shared from './pages/app/Shared.jsx';
 import SharedVault from './pages/app/SharedVault.jsx';
 import Activity from './pages/app/Activity.jsx';
 import Settings from './pages/app/Settings.jsx';
+import Admin from './pages/admin/Admin.jsx';
 
 /** Move focus and scroll to the top on every page change (helps screen readers). */
 function useFocusOnNavigate() {
@@ -73,6 +74,19 @@ export default function App() {
         <Route path="shared/:nomineeId" element={<SharedVault />} />
         <Route path="activity" element={<Activity />} />
         <Route path="settings" element={<Settings />} />
+      </Route>
+
+      <Route
+        path="admin"
+        element={
+          <RequireAuth>
+            <RequireAdmin>
+              <AppLayout />
+            </RequireAdmin>
+          </RequireAuth>
+        }
+      >
+        <Route index element={<Admin />} />
       </Route>
     </Routes>
   );

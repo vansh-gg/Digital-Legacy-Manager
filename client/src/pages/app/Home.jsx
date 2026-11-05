@@ -103,7 +103,7 @@ function CheckInHero({ user, onCheckedIn }) {
             )}
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button variant="accent" size="lg" icon={HeartPulse} onClick={checkIn} loading={busy}>
+            <Button variant="accent" size="lg" icon={HeartPulse} onClick={checkIn} loading={busy} disabled={user.readOnly}>
               I am well — check in
             </Button>
             <Button to="/app/settings" variant="light" icon={CalendarClock}>Change schedule</Button>

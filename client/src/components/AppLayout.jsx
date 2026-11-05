@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { House, Wallet, FileText, Users, Mail, Gift, History, Settings, LogOut, Menu, X, Inbox } from 'lucide-react';
+import { House, Wallet, FileText, Users, Mail, Gift, History, Settings, LogOut, Menu, X, Inbox, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 import { usePolling } from '../lib/useNow.js';
@@ -35,10 +35,13 @@ const NAV_GROUPS = [
   },
 ];
 
-function NavItems({ devTools, badges = {} }) {
+function NavItems({ devTools, badges = {}, isAdmin }) {
+  const groups = isAdmin
+    ? [...NAV_GROUPS, { label: 'Administration', items: [{ to: '/admin', label: 'Admin dashboard', icon: ShieldCheck }] }]
+    : NAV_GROUPS;
   return (
     <nav aria-label="Main menu" className="space-y-6">
-      {NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.label}>
           <p className="mb-2 px-3 text-xs font-bold uppercase tracking-[0.18em] text-white/65">{group.label}</p>
           <ul className="space-y-1">
@@ -145,7 +148,7 @@ export function AppLayout() {
           <Logo to="/app" tone="light" />
         </div>
         <div className="relative mt-8 flex-1">
-          <NavItems devTools={devTools} badges={badges} />
+          <NavItems devTools={devTools} badges={badges} isAdmin={user?.role === 'ADMIN'} />
         </div>
         <div className="relative mt-6">
           <UserCard user={user} onSignOut={signOut} />
@@ -179,7 +182,7 @@ export function AppLayout() {
       {menuOpen && (
         <div id="mobile-menu" className="bg-midnight-deep space-y-6 px-4 pb-6 pt-2 lg:hidden">
           <AccessibilityBar tone="light" />
-          <NavItems devTools={devTools} badges={badges} />
+          <NavItems devTools={devTools} badges={badges} isAdmin={user?.role === 'ADMIN'} />
           <UserCard user={user} onSignOut={signOut} />
         </div>
       )}

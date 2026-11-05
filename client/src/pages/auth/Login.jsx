@@ -8,7 +8,7 @@ import { Alert, Button, TextField } from '../../components/ui.jsx';
 import { safeNext } from '../../components/RequireAuth.jsx';
 
 export default function Login() {
-  const { user, login } = useAuth();
+  const { user, login, devTools } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
@@ -16,6 +16,7 @@ export default function Login() {
   const [form, setForm] = useState({ email: params.get('email') || '', password: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState(false);
 
   if (user) return <Navigate to={next} replace />;
 
@@ -24,8 +25,8 @@ export default function Login() {
     setBusy(true);
     setError('');
     try {
-      await login(form.email, form.password);
-      navigate(next, { replace: true });
+      const u = await login(form.email, form.password, { preview });
+      navigate(u.role === 'ADMIN' && next === '/app' ? '/admin' : next, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -57,7 +58,25 @@ export default function Login() {
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
         />
-        <Button type="submit" size="lg" icon={LogIn} loading={busy} className="w-full">Log in</Button>
+        {devTools && (
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-dashed border-line bg-mist px-4 py-3">
+            <input
+              type="checkbox"
+              className="mt-1 size-5 shrink-0 accent-[#173b65]"
+              checked={preview}
+              onChange={(e) => setPreview(e.target.checked)}
+            />
+            <span>
+              <span className="font-bold">Read-only demo preview</span>
+              <span className="block text-sm text-muted">
+                For the demo accounts only. Look around without it counting as a check-in, so the scenario stays as it is.
+              </span>
+            </span>
+          </label>
+        )}
+        <Button type="submit" size="lg" icon={LogIn} loading={busy} className="w-full">
+          {preview ? 'Open read-only preview' : 'Log in'}
+        </Button>
       </form>
       <div className="mt-7 space-y-3 text-lg">
         <p><Link to="/forgot-password" className="font-bold">I forgot my password</Link></p>

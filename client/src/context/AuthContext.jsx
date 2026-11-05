@@ -23,8 +23,8 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('dlm:unauthorized', onUnauthorized);
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const { user } = await api('/auth/login', { method: 'POST', body: { email, password } });
+  const login = useCallback(async (email, password, { preview = false } = {}) => {
+    const { user } = await api('/auth/login', { method: 'POST', body: { email, password, ...(preview ? { preview: true } : {}) } });
     setUser(user);
     return user;
   }, []);
