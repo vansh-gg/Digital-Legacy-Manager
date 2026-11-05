@@ -1,7 +1,7 @@
 # Test Cases
 
 All cases below are automated (`npm test`) and run against an isolated test database.
-**Result: 35 / 35 passing.**
+**Result: 38 / 38 passing.**
 
 | ID | Module | Description | Expected result |
 |---|---|---|---|
@@ -40,6 +40,9 @@ All cases below are automated (`npm test`) and run against an isolated test data
 | TC-LEG-07 | Legacy | Nominee reports a passing | GRACE started, nothing released, owner alerted |
 | TC-LEG-08 | Reliability | Sweep run twice | No duplicate emails |
 | TC-LEG-09 | Dashboard | Readiness checklist | Correct counts and step states |
+| TC-LIVE-01 | Live demo | Seconds-based check-in missed | GRACE on the owner's next request, RELEASED on the nominee's next request — no cron needed |
+| TC-LIVE-02 | Reliability | Three simultaneous evaluations | Exactly one set of emails (conditional state updates) |
+| TC-LIVE-03 | Live demo | Stop live demo / invalid timings | Back to ACTIVE on the normal schedule; under 10 seconds rejected |
 
 ## Manual / UI test checklist
 
@@ -51,3 +54,5 @@ All cases below are automated (`npm test`) and run against an isolated test data
 | UI-04 | Keyboard only: Tab order, visible focus ring, Esc closes dialogs | Pass |
 | UI-05 | Owner reveals a secret after re-entering the password | Pass |
 | UI-06 | Release demo: owner misses check-in, nominee opens letter and items | Pass |
+| UI-07 | Live demo: countdown ticks every second; nominee page updates by itself on release | Pass |
+| UI-08 | All demo scenarios (active, reminded, waiting x2, released, live) display correctly | Pass |

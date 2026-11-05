@@ -8,7 +8,7 @@ import { Alert, Button, TextField } from '../../components/ui.jsx';
 import { safeNext } from '../../components/RequireAuth.jsx';
 
 export default function Login() {
-  const { user, login, devTools } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
@@ -68,13 +68,6 @@ export default function Login() {
           </Link>
         </p>
       </div>
-      {devTools && (
-        <Alert tone="info" title="Demo accounts (development only)" className="mt-7">
-          <p>Owner: <strong>ramesh@example.com</strong></p>
-          <p>Trusted person: <strong>priya@example.com</strong></p>
-          <p>Password for both: <strong>Demo@1234</strong></p>
-        </Alert>
-      )}
     </AuthCard>
   );
 }

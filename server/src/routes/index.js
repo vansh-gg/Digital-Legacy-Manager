@@ -22,7 +22,7 @@ export function registerRoutes(app) {
   app.use('/api/shared', sharedRoutes);
   app.use('/api/cron', cronRoutes);
   app.get('/api/config', (req, res) =>
-    res.json({ devTools: config.devTools, maxUploadMb: config.maxUploadMb, demoAccounts: config.devTools }),
+    res.json({ devTools: config.devTools, maxUploadMb: config.maxUploadMb }),
   );
   if (config.devTools) app.use('/api/dev', devRoutes);
   app.use('/api', dashboardRoutes);

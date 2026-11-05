@@ -25,6 +25,7 @@
 | Over-sharing after release | Nominees see only the items explicitly assigned to them, and every access is logged in the owner's history |
 | Shoulder surfing | Secrets are hidden until the password is re-entered, and hidden again when the dialog closes |
 | Demo tools in production | Off by default in production. If enabled for a demo, the mailbox only shows the signed-in user's own emails |
+| Public demo credentials | Demo accounts use a private `DEMO_PASSWORD` from the environment; no password appears in the code, README or login page |
 | Forged cron calls | `/api/cron/sweep` requires the `CRON_SECRET` bearer token (constant-time compare); otherwise it returns 404 |
 
 ## Key management

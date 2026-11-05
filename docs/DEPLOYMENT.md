@@ -26,7 +26,8 @@ serverless function (`api/index.mjs`). Data lives in a free **Neon PostgreSQL** 
 | `CRON_SECRET` | Any long random string (protects the cron endpoint) |
 | `NODE_ENV` | `production` |
 | `ENABLE_DEV_TOOLS` | `true` for a classroom demo (demo mailbox + time travel), otherwise leave unset |
-| `SEED_DEMO` | `true` to load the demo family (Ramesh & Priya) on each deploy |
+| `SEED_DEMO` | `true` to load the 6 demo scenarios on each deploy |
+| `DEMO_PASSWORD` | Private password for all demo accounts (never put it in the code or README) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Optional real email (e.g. Brevo, or a Gmail app password) |
 
 4. **Redeploy.** During the build, `server/scripts/prepare-db.js` detects Postgres, switches the Prisma

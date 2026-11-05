@@ -8,12 +8,7 @@ and the system releases each item to the right person **only if the owner stops 
 
 **🔗 Live demo: [digital-legacy-manager-iota.vercel.app](https://digital-legacy-manager-iota.vercel.app)**
 
-| Demo role | Email | Password |
-|---|---|---|
-| Owner (Ramesh Kumar) | `ramesh@example.com` | `Demo@1234` |
-| Nominee (his daughter Priya) | `priya@example.com` | `Demo@1234` |
-
-Hosted on Vercel (Singapore region) with a Neon PostgreSQL database. Demo data is reset on every deploy.
+Hosted on Vercel (Singapore region) with a Neon PostgreSQL database. Demo accounts are available on request.
 
 ---
 
@@ -37,7 +32,8 @@ This project is designed from the ground up for **older users** and their famili
 | **Nominee portal** | After release, nominees see only what was assigned to them |
 | **Safe reporting** | A nominee can report a death. This starts the grace period, but **never** releases anything immediately |
 | **Activity history** | Full audit log, highlighting failed logins and nominee access |
-| **Accessibility** | Large readable font, 3 text sizes, read-aloud, AAA contrast, 56px buttons, step-by-step forms |
+| **Accessibility** | Readable font, 3 text sizes, read-aloud, high-contrast slate-blue theme (≥ 4.5:1), large labelled buttons, step-by-step forms |
+| **Live demo mode** | Count check-ins in seconds to show a missed check-in and the handover live |
 
 ## Security highlights
 
@@ -59,7 +55,7 @@ See [docs/SECURITY.md](docs/SECURITY.md) for the threat model.
 | Backend | Node.js, Express 5, Prisma ORM, Zod, node-cron, Nodemailer |
 | Database | SQLite locally, Neon PostgreSQL in production (switched automatically) |
 | Hosting | Vercel (static site + serverless API + daily cron) |
-| Testing | Node test runner + Supertest (35 API test cases) |
+| Testing | Node test runner + Supertest (38 API test cases) |
 
 ## Getting started
 
@@ -68,26 +64,32 @@ Requires **Node.js 20.12+**.
 ```bash
 npm install        # installs server + client
 npm run setup      # creates server/.env with random secrets and the database
-npm run seed       # optional: demo family data
+npm run seed       # optional: 6 demo scenarios (password = DEMO_PASSWORD in server/.env)
 npm run dev        # API on :4000, web app on http://localhost:5173
 ```
 
-### Demo accounts (after `npm run seed`)
+### Demo scenarios (after `npm run seed`)
 
-| Role | Email | Password |
+The seed creates one family for each situation the system handles. All demo accounts use the
+password in `DEMO_PASSWORD` (generated privately by `npm run setup`, never stored in the code).
+
+| # | Owner | Situation |
 |---|---|---|
-| Owner (Ramesh Kumar, 72) | `ramesh@example.com` | `Demo@1234` |
-| Nominee (his daughter Priya) | `priya@example.com` | `Demo@1234` |
+| 1 | Ramesh Kumar | **Active**: complete plan, one nominee accepted, one invitation pending |
+| 2 | Sunita Iyer | **Reminder sent**: check-in due in 2 days |
+| 3 | Mohan Das | **Waiting period**: missed his check-in, release in 4 days |
+| 4 | Meera Nair | **Waiting period**: her daughter reported she may have passed away |
+| 5 | Gopal Rao | **Released**: son and daughter each see only what was left to them; one nominee declined |
+| 6 | Harish Menon | Ready for a **live demo** |
 
-### Demonstrating the release flow (no need to wait 30 days)
+### Live demo: show a release happening in real time
 
-In development, **Settings → Demonstration tools** can move time forward for your own account:
+1. Log in as the live-demo owner and open **Settings → Live demo mode**. Choose, for example, 30 seconds and 30 seconds, then press **Start live demo**.
+2. Open **Home** and watch the countdown. When it reaches zero the waiting period starts, and when that ends the plan is released.
+3. In a second browser (or an incognito window), log in as the nominee and open **Left for me**. The page updates by itself.
+4. Press **I am well** at any time to lock everything again.
 
-1. Log in as Ramesh, then go to **Settings** and press **Miss the check-in**. The status becomes *Grace*: a red banner appears and emails go out.
-2. Press **End the waiting period**. The vault is now *Released*.
-3. Open **Demo mailbox** to read every email the system sent.
-4. Log out, log in as Priya, and open **Left for me**. You'll see the letter, accounts and will.
-5. Log back in as Ramesh. The release is cancelled and access is locked again.
+For day-based demos, **Settings → Jump ahead in time** moves the schedule forward by days instead.
 
 ### Tests
 
