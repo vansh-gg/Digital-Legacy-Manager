@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { publicUser } from '../services/legacy.js';
+import { vaultsFor } from './shared.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -9,7 +10,7 @@ router.use(requireAuth);
 /** Everything the home screen needs in one request. */
 router.get('/dashboard', async (req, res) => {
   const ownerId = req.user.id;
-  const [assets, unassignedAssets, documents, people, letters, sharedWithMe, recent] = await Promise.all([
+  const [assets, unassignedAssets, documents, people, letters, leftForMe, recent] = await Promise.all([
     prisma.asset.count({ where: { ownerId } }),
     prisma.asset.count({ where: { ownerId, shares: { none: {} } } }),
     prisma.document.count({ where: { ownerId } }),
@@ -20,10 +21,11 @@ router.get('/dashboard', async (req, res) => {
       orderBy: { createdAt: 'asc' },
     }),
     prisma.letter.count({ where: { ownerId } }),
-    prisma.nominee.count({ where: { userId: ownerId, status: 'ACCEPTED' } }),
+    vaultsFor(ownerId),
     prisma.auditLog.findMany({ where: { userId: ownerId }, orderBy: { createdAt: 'desc' }, take: 5 }),
   ]);
 
+  const sharedWithMe = leftForMe.length;
   const nominees = people.length;
   const byStatus = (st) => people.filter((p) => p.status === st).length;
   const acceptedNominees = byStatus('ACCEPTED');
@@ -43,6 +45,7 @@ router.get('/dashboard', async (req, res) => {
     user: publicUser(req.user),
     counts: { assets, unassignedAssets, documents, nominees, acceptedNominees, pendingNominees, declinedNominees, letters, sharedWithMe },
     people,
+    leftForMe,
     steps,
     recentActivity: recent,
   });

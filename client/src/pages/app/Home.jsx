@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -14,12 +14,13 @@ import {
   ShieldCheck,
   CalendarClock,
   Radio,
+  FolderOpen,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { api } from '../../lib/api.js';
 import { useApi } from '../../lib/useApi.js';
-import { useNow } from '../../lib/useNow.js';
+import { secondsUntil, useNow, usePolling } from '../../lib/useNow.js';
 import { firstName, formatDate, formatDateTime, greeting, relativeDays } from '../../lib/format.js';
 import { NOMINEE_STATUS } from '../../lib/meta.js';
 import { Avatar, Badge, Button, Card, ErrorState, IconChip, Loading, Ring } from '../../components/ui.jsx';
@@ -120,6 +121,67 @@ function CheckInHero({ user, onCheckedIn }) {
           <span className="mt-1 max-w-24 text-xs text-white/80">{ring.small}</span>
         </Ring>
       </div>
+    </section>
+  );
+}
+
+const VAULT_STATUS = {
+  RELEASED: { label: 'Available now', tone: 'info' },
+  GRACE: { label: 'Not responding', tone: 'warn' },
+  ACTIVE: { label: 'Private for now', tone: 'ok' },
+};
+
+/**
+ * Shown first for anyone who is also a trusted person, so items left for them
+ * are never buried under their own plan.
+ */
+function LeftForMePanel({ vaults, now }) {
+  const ready = vaults.filter((v) => v.ownerStatus === 'RELEASED');
+  return (
+    <section
+      aria-labelledby="left-for-me-heading"
+      className={`rounded-3xl border-2 p-5 sm:p-6 ${ready.length ? 'border-deep bg-ice-soft' : 'border-line bg-white'}`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <IconChip icon={Gift} tone="ice" size="lg" />
+          <div>
+            <h2 id="left-for-me-heading" className="font-serif text-2xl font-semibold text-midnight">Left for me</h2>
+            <p className="text-muted">
+              {ready.length > 0
+                ? `${ready.length} ${ready.length === 1 ? 'person has' : 'people have'} left items you can open now.`
+                : `You are a trusted person for ${vaults.length} ${vaults.length === 1 ? 'person' : 'people'}. Nothing is available yet.`}
+            </p>
+          </div>
+        </div>
+        <Button to="/app/shared" variant={ready.length ? 'primary' : 'secondary'} icon={ArrowRight}>
+          {ready.length ? 'Open Left for me' : 'See details'}
+        </Button>
+      </div>
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        {vaults.map((v) => {
+          const st = VAULT_STATUS[v.ownerStatus];
+          return (
+            <li key={v.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3">
+              <div className="min-w-0">
+                <p className="font-bold">{v.ownerName}</p>
+                <p className="text-sm text-muted">
+                  {v.ownerStatus === 'GRACE' && v.graceEndsAt
+                    ? v.liveDemo
+                      ? `May open in ${secondsUntil(v.graceEndsAt, now)} seconds`
+                      : `May open on ${formatDate(v.graceEndsAt)}`
+                    : `${v.counts.assets} items · ${v.counts.documents} documents · ${v.counts.letters} letters`}
+                </p>
+              </div>
+              {v.ownerStatus === 'RELEASED' ? (
+                <Button to={`/app/shared/${v.id}`} size="sm" icon={FolderOpen}>Open</Button>
+              ) : (
+                <Badge tone={st.tone}>{st.label}</Badge>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
@@ -234,7 +296,15 @@ function PeopleCard({ people, counts }) {
 
 export default function Home() {
   const { user, setUser } = useAuth();
-  const { data, loading, error, reload } = useApi('/dashboard');
+  const { data, loading, error, reload, setData } = useApi('/dashboard');
+  const leftForMe = data?.leftForMe || [];
+  // Follow a live-demo release on screen (e.g. Kavya watching Harish's countdown).
+  const live = leftForMe.some((v) => v.liveDemo && v.ownerStatus !== 'RELEASED');
+  const refresh = useCallback(() => {
+    api('/dashboard').then(setData).catch(() => {});
+  }, [setData]);
+  usePolling(refresh, 3000, live);
+  const now = useNow(1000, live);
 
   const onCheckedIn = (u) => {
     setUser(u);
@@ -246,6 +316,7 @@ export default function Home() {
 
   return (
     <div className="space-y-6">
+      {leftForMe.length > 0 && <LeftForMePanel vaults={leftForMe} now={now} />}
       <CheckInHero user={user} onCheckedIn={onCheckedIn} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -271,7 +342,7 @@ export default function Home() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className={leftForMe.length ? 'lg:col-span-3' : 'lg:col-span-2'}>
           <div className="flex items-center justify-between gap-4">
             <h2 className="font-serif text-xl font-semibold text-midnight">Recent activity</h2>
             <Link to="/app/activity" className="text-sm font-bold">See all</Link>
@@ -290,21 +361,13 @@ export default function Home() {
           </ol>
         </Card>
 
-        <Card className={data.counts.sharedWithMe > 0 ? 'bg-ice-soft border-ice/30' : ''}>
-          <IconChip icon={Gift} tone="ice" size="lg" />
-          <h2 className="mt-4 font-serif text-xl font-semibold text-midnight">Left for me</h2>
-          {data.counts.sharedWithMe > 0 ? (
-            <>
-              <p className="mt-2 text-muted">
-                <strong className="text-ink">{data.counts.sharedWithMe}</strong>{' '}
-                {data.counts.sharedWithMe === 1 ? 'person has' : 'people have'} chosen you as their trusted person.
-              </p>
-              <Button to="/app/shared" variant="secondary" size="sm" className="mt-4">See details</Button>
-            </>
-          ) : (
+        {leftForMe.length === 0 && (
+          <Card>
+            <IconChip icon={Gift} tone="ice" size="lg" />
+            <h2 className="mt-4 font-serif text-xl font-semibold text-midnight">Left for me</h2>
             <p className="mt-2 text-muted">When someone names you as their trusted person, they will appear here.</p>
-          )}
-        </Card>
+          </Card>
+        )}
       </div>
     </div>
   );

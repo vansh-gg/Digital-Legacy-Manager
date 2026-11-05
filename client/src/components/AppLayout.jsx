@@ -11,18 +11,20 @@ import { Avatar } from './ui.jsx';
 
 const NAV_GROUPS = [
   {
-    label: 'My plan',
+    label: 'Start here',
     items: [
       { to: '/app', label: 'Home', icon: House, end: true },
+      { to: '/app/shared', label: 'Left for me', icon: Gift, badge: 'leftForMe' },
+    ],
+  },
+  {
+    label: 'My plan',
+    items: [
       { to: '/app/assets', label: 'Accounts & assets', icon: Wallet },
       { to: '/app/documents', label: 'Documents', icon: FileText },
       { to: '/app/nominees', label: 'Trusted people', icon: Users },
       { to: '/app/letters', label: 'Personal letters', icon: Mail },
     ],
-  },
-  {
-    label: 'Family',
-    items: [{ to: '/app/shared', label: 'Left for me', icon: Gift }],
   },
   {
     label: 'Account',
@@ -33,14 +35,14 @@ const NAV_GROUPS = [
   },
 ];
 
-function NavItems({ devTools }) {
+function NavItems({ devTools, badges = {} }) {
   return (
     <nav aria-label="Main menu" className="space-y-6">
       {NAV_GROUPS.map((group) => (
         <div key={group.label}>
           <p className="mb-2 px-3 text-xs font-bold uppercase tracking-[0.18em] text-white/65">{group.label}</p>
           <ul className="space-y-1">
-            {group.items.map(({ to, label, icon: Icon, end }) => (
+            {group.items.map(({ to, label, icon: Icon, end, badge }) => (
               <li key={to}>
                 <NavLink
                   to={to}
@@ -55,6 +57,15 @@ function NavItems({ devTools }) {
                     <>
                       <Icon className="size-[18px] shrink-0" aria-hidden />
                       {label}
+                      {badge && badges[badge] > 0 && (
+                        <span
+                          className={`ml-auto rounded-full px-2 py-0.5 text-xs font-bold ${
+                            isActive ? 'bg-midnight text-white' : 'bg-ice text-midnight'
+                          }`}
+                        >
+                          {badges[badge]} ready
+                        </span>
+                      )}
                     </>
                   )}
                 </NavLink>
@@ -104,6 +115,15 @@ export function AppLayout() {
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
+  // How many people have released items to this user (badge + mobile shortcut).
+  const [leftForMe, setLeftForMe] = useState({ total: 0, ready: 0 });
+  useEffect(() => {
+    api('/shared')
+      .then((r) => setLeftForMe({ total: r.vaults.length, ready: r.vaults.filter((v) => v.ownerStatus === 'RELEASED').length }))
+      .catch(() => {});
+  }, [location.pathname]);
+  const badges = { leftForMe: leftForMe.ready };
+
   // In live demo mode, refresh the owner's status every 3 seconds so the release appears on screen live.
   const refreshMe = useCallback(() => {
     api('/auth/me').then((r) => setUser(r.user)).catch(() => {});
@@ -125,7 +145,7 @@ export function AppLayout() {
           <Logo to="/app" tone="light" />
         </div>
         <div className="relative mt-8 flex-1">
-          <NavItems devTools={devTools} />
+          <NavItems devTools={devTools} badges={badges} />
         </div>
         <div className="relative mt-6">
           <UserCard user={user} onSignOut={signOut} />
@@ -135,6 +155,16 @@ export function AppLayout() {
       {/* Mobile top bar */}
       <header className="bg-hero sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 lg:hidden">
         <Logo to="/app" tone="light" />
+        {leftForMe.total > 0 && (
+          <NavLink
+            to="/app/shared"
+            className="ml-auto flex min-h-11 items-center gap-2 rounded-xl bg-ice px-3 text-sm font-bold text-midnight no-underline"
+          >
+            <Gift className="size-5" aria-hidden />
+            <span className="max-[400px]:sr-only">Left for me</span>
+            {leftForMe.ready > 0 && <span className="rounded-full bg-midnight px-1.5 text-xs text-white">{leftForMe.ready}</span>}
+          </NavLink>
+        )}
         <button
           type="button"
           className="flex min-h-11 items-center gap-2 rounded-xl border border-white/25 px-3 text-sm font-bold text-white cursor-pointer"
@@ -149,7 +179,7 @@ export function AppLayout() {
       {menuOpen && (
         <div id="mobile-menu" className="bg-midnight-deep space-y-6 px-4 pb-6 pt-2 lg:hidden">
           <AccessibilityBar tone="light" />
-          <NavItems devTools={devTools} />
+          <NavItems devTools={devTools} badges={badges} />
           <UserCard user={user} onSignOut={signOut} />
         </div>
       )}

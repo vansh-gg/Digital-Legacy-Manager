@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Gift, Lock, Hourglass, HeartHandshake, Flag, FolderOpen } from 'lucide-react';
+import { Gift, Lock, Hourglass, HeartHandshake, Flag, FolderOpen, House } from 'lucide-react';
 import { useToast } from '../../context/ToastContext.jsx';
 import { api } from '../../lib/api.js';
 import { useApi } from '../../lib/useApi.js';
@@ -68,14 +68,18 @@ export default function Shared() {
 
   return (
     <>
-      <PageHeader title="Left for me" intro="People who have chosen you as their trusted person." />
+      <PageHeader
+        title="Left for me"
+        intro="People who have chosen you as their trusted person. Items become available only after their plan is released."
+        action={<Button to="/app" variant="secondary" icon={House}>Back to my own plan</Button>}
+      />
       {data.vaults.length === 0 ? (
         <EmptyState icon={HeartHandshake} title="Nobody has chosen you yet">
           When someone adds you as a trusted person, you will receive an email invitation. After you accept, they will appear here.
         </EmptyState>
       ) : (
         <ul className="space-y-5">
-          {data.vaults.map((v) => {
+          {[...data.vaults].sort((a, b) => (b.ownerStatus === 'RELEASED') - (a.ownerStatus === 'RELEASED')).map((v) => {
             const s = STATUS[v.ownerStatus];
             const Icon = s.icon;
             return (

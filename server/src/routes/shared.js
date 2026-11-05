@@ -40,25 +40,27 @@ function requireReleased(nominee) {
   }
 }
 
-router.get('/', async (req, res) => {
+/** Everyone who chose this user as an accepted trusted person, with the status the nominee may see. */
+export async function vaultsFor(userId) {
   const memberships = await prisma.nominee.findMany({
-    where: { userId: req.user.id, status: 'ACCEPTED' },
+    where: { userId, status: 'ACCEPTED' },
     include: { owner: true, _count: { select: { assetShares: true, documentShares: true, letters: true } } },
     orderBy: { acceptedAt: 'asc' },
   });
   for (const m of memberships) m.owner = await evaluateUser(m.owner);
-  res.json({
-    serverNow: new Date(),
-    vaults: memberships.map((m) => ({
-      id: m.id,
-      ownerName: m.owner.name,
-      relationship: m.relationship,
-      ownerStatus: visibleStatus(m.owner.legacyStatus),
-      graceEndsAt: m.owner.legacyStatus === 'GRACE' ? m.owner.graceEndsAt : null,
-      liveDemo: isLiveDemo(m.owner),
-      counts: { assets: m._count.assetShares, documents: m._count.documentShares, letters: m._count.letters },
-    })),
-  });
+  return memberships.map((m) => ({
+    id: m.id,
+    ownerName: m.owner.name,
+    relationship: m.relationship,
+    ownerStatus: visibleStatus(m.owner.legacyStatus),
+    graceEndsAt: m.owner.legacyStatus === 'GRACE' ? m.owner.graceEndsAt : null,
+    liveDemo: isLiveDemo(m.owner),
+    counts: { assets: m._count.assetShares, documents: m._count.documentShares, letters: m._count.letters },
+  }));
+}
+
+router.get('/', async (req, res) => {
+  res.json({ serverNow: new Date(), vaults: await vaultsFor(req.user.id) });
 });
 
 router.get('/:nomineeId', async (req, res) => {
