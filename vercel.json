@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install",
+  "installCommand": "npm install --include=dev",
   "buildCommand": "node server/scripts/prepare-db.js && npm run build",
   "outputDirectory": "client/dist",
+  "regions": ["sin1"],
   "functions": {
     "api/index.mjs": { "maxDuration": 30 }
   },
