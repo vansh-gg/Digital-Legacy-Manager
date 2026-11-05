@@ -182,9 +182,13 @@ function ReadinessCard({ steps, unassigned }) {
   );
 }
 
-function PeopleCard() {
-  const { data } = useApi('/nominees');
-  const people = data?.nominees || [];
+/** Uses the same list as the dashboard counts, so the tile and this panel always agree. */
+function PeopleCard({ people, counts }) {
+  const summary = [
+    counts.acceptedNominees && `${counts.acceptedNominees} accepted`,
+    counts.pendingNominees && `${counts.pendingNominees} waiting for reply`,
+    counts.declinedNominees && `${counts.declinedNominees} declined`,
+  ].filter(Boolean);
   return (
     <Card className="flex flex-col">
       <div className="flex items-center justify-between">
@@ -197,21 +201,32 @@ function PeopleCard() {
           <Button to="/app/nominees/new" size="sm" icon={UserPlus} className="mt-4">Add a person</Button>
         </div>
       ) : (
-        <ul className="mt-4 space-y-3">
-          {people.slice(0, 4).map((n) => {
-            const s = NOMINEE_STATUS[n.status];
-            return (
-              <li key={n.id} className="flex items-start gap-3">
-                <Avatar name={n.name} />
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold leading-snug">{n.name}</p>
-                  <p className="text-sm text-muted">{n.relationship}</p>
-                  <Badge tone={s.tone} className="mt-1.5">{s.label}</Badge>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <p className="mt-1 text-sm text-muted">{summary.join(' · ')}</p>
+          <ul className="mt-4 space-y-3">
+            {people.slice(0, 4).map((n) => {
+              const s = NOMINEE_STATUS[n.status];
+              return (
+                <li key={n.id} className="flex items-start gap-3">
+                  <Avatar name={n.name} />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold leading-snug">{n.name}</p>
+                    <p className="text-sm text-muted">{n.relationship}</p>
+                    <Badge tone={s.tone} className="mt-1.5">{s.label}</Badge>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {people.length > 4 && (
+            <Link to="/app/nominees" className="mt-3 text-sm font-bold">and {people.length - 4} more →</Link>
+          )}
+          {counts.pendingNominees > 0 && (
+            <Button to="/app/nominees" variant="secondary" size="sm" className="mt-4 self-start">
+              Remind people who have not replied
+            </Button>
+          )}
+        </>
       )}
     </Card>
   );
@@ -252,7 +267,7 @@ export default function Home() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <ReadinessCard steps={data.steps} unassigned={data.counts.unassignedAssets} />
-        <PeopleCard />
+        <PeopleCard people={data.people} counts={data.counts} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
